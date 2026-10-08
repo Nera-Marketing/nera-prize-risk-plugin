@@ -3,7 +3,8 @@
  * Prize Risk screen: calculator box on top, competitions table below it.
  *
  * Variables from Nera_Prize_Risk_Admin::render_report(): $fee_pct (float), $settings_url (string), $all_rows (array[]),
- * $rows (array[], filtered), $filters (array), $options (array), $export_url (string).
+ * $rows (array[], filtered), $filters (array), $options (array), $export_url (string), $view (list|items),
+ * $view_urls (array{list:string,items:string}, current filters kept).
  *
  * @package nera-prize-risk
  */
@@ -68,8 +69,16 @@ $nera_prize_risk_outputs = array(
 
 	<h2 class="nera-prize-risk-table-title"><?php esc_html_e( 'Competitions', 'nera-prize-risk' ); ?></h2>
 
+	<ul class="subsubsub nera-prize-risk-view" id="nera-prize-risk-view">
+		<li><a id="nera-prize-risk-view-list" href="<?php echo esc_url( $view_urls['list'] ); ?>"<?php echo 'list' === $view ? ' class="current" aria-current="page"' : ''; ?>><?php esc_html_e( 'Competitions', 'nera-prize-risk' ); ?></a> |</li>
+		<li><a id="nera-prize-risk-view-items" href="<?php echo esc_url( $view_urls['items'] ); ?>"<?php echo 'items' === $view ? ' class="current" aria-current="page"' : ''; ?>><?php esc_html_e( 'Items', 'nera-prize-risk' ); ?></a></li>
+	</ul>
+
 	<form method="get" class="nera-prize-risk-filters" id="nera-prize-risk-filters">
 		<input type="hidden" name="page" value="<?php echo esc_attr( Nera_Prize_Risk_Admin::PAGE_SLUG ); ?>" />
+		<?php if ( 'items' === $view ) : ?>
+			<input type="hidden" name="view" value="items" />
+		<?php endif; ?>
 		<?php foreach ( $nera_prize_risk_filter_labels as $nera_prize_risk_key => $nera_prize_risk_label ) : ?>
 			<label class="screen-reader-text" for="nera-prize-risk-filter-<?php echo esc_attr( $nera_prize_risk_key ); ?>"><?php echo esc_html( $nera_prize_risk_label[0] ); ?></label>
 			<select name="<?php echo esc_attr( $nera_prize_risk_key ); ?>" id="nera-prize-risk-filter-<?php echo esc_attr( $nera_prize_risk_key ); ?>">
@@ -81,15 +90,25 @@ $nera_prize_risk_outputs = array(
 		<?php endforeach; ?>
 		<?php submit_button( __( 'Filter', 'nera-prize-risk' ), '', '', false, array( 'id' => 'nera-prize-risk-filter-submit' ) ); ?>
 		<?php if ( array_filter( $filters ) ) : ?>
-			<a class="button-link" href="<?php echo esc_url( admin_url( 'admin.php?page=' . Nera_Prize_Risk_Admin::PAGE_SLUG ) ); ?>"><?php esc_html_e( 'Clear filters', 'nera-prize-risk' ); ?></a>
+			<a class="button-link" href="<?php echo esc_url( admin_url( 'admin.php?page=' . Nera_Prize_Risk_Admin::PAGE_SLUG . ( 'items' === $view ? '&view=items' : '' ) ) ); ?>"><?php esc_html_e( 'Clear filters', 'nera-prize-risk' ); ?></a>
 		<?php endif; ?>
 		<a class="button nera-prize-risk-export" id="nera-prize-risk-export" href="<?php echo esc_url( $export_url ); ?>"><?php esc_html_e( 'Export CSV', 'nera-prize-risk' ); ?></a>
 	</form>
 
 	<?php
-	Nera_Prize_Risk_Table::render(
-		$rows,
-		( $all_rows && ! $rows ) ? __( 'No competitions match these filters.', 'nera-prize-risk' ) : ''
-	);
+	if ( 'items' === $view ) {
+		Nera_Prize_Risk_Table::render_rollup( Nera_Prize_Risk_Data::rollup( $rows, 'title' ), 'title', __( 'Item', 'nera-prize-risk' ) );
+	} else {
+		Nera_Prize_Risk_Table::render(
+			$rows,
+			( $all_rows && ! $rows ) ? __( 'No competitions match these filters.', 'nera-prize-risk' ) : ''
+		);
+	}
 	?>
+
+	<h2 class="nera-prize-risk-rollup-title"><?php esc_html_e( 'By category', 'nera-prize-risk' ); ?></h2>
+	<?php Nera_Prize_Risk_Table::render_rollup( Nera_Prize_Risk_Data::rollup( $rows, 'category' ), 'category', __( 'Category', 'nera-prize-risk' ) ); ?>
+
+	<h2 class="nera-prize-risk-rollup-title"><?php esc_html_e( 'By month', 'nera-prize-risk' ); ?></h2>
+	<?php Nera_Prize_Risk_Table::render_rollup( Nera_Prize_Risk_Data::rollup( $rows, 'month' ), 'month', __( 'Month (close date)', 'nera-prize-risk' ) ); ?>
 </div>

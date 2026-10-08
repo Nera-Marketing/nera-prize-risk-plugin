@@ -39,3 +39,11 @@
 .nera-prize-risk-filters .nera-prize-risk-export {
 	margin-left: auto;
 }
+.nera-prize-risk-view {
+	float: none;
+	margin: 0 0 8px;
+}
+.nera-prize-risk-rollup tfoot th,
+.nera-prize-risk-rollup tfoot td {
+	font-weight: 600;
+}
