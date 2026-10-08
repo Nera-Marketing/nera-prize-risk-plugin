@@ -1,6 +1,6 @@
 <?php
 /**
- * "Postal entry" tag on orders (D-1, CHG-6): edit-order checkbox, auto-tag for admin-created £0 orders,
+ * "Postal entry" tag on orders (D-1, CHG-6): edit-order checkbox, auto-tag for admin-created orders whose lottery lines are all £0,
  * and a "Postal" label in the orders list. HPOS and CPT storage.
  *
  * @package Nera_Prize_Risk
@@ -104,7 +104,9 @@ class Nera_Prize_Risk_Postal {
 
 	/**
 	 * Save the tag: a changed box is a manual choice (yes/no); an unchanged box on a never-set order
-	 * applies the auto rule (created in wp-admin with a £0 total); otherwise the stored value stays.
+	 * applies the auto rule (created in wp-admin, at least one lottery line and every lottery line at £0;
+	 * the order total isn't used, as WooCommerce's "add item" doesn't recalculate it); otherwise the
+	 * stored value stays.
 	 *
 	 * @param int $order_id Order id.
 	 * @return void
@@ -127,7 +129,7 @@ class Nera_Prize_Risk_Postal {
 
 		if ( $posted !== $was ) {
 			$value = $posted ? 'yes' : 'no';
-		} elseif ( '' === $current && 'admin' === $order->get_created_via() && abs( (float) $order->get_total() ) < 0.005 ) {
+		} elseif ( '' === $current && 'admin' === $order->get_created_via() && self::all_lottery_lines_free( $order ) ) {
 			$value = 'yes';
 		} else {
 			return;
@@ -141,6 +143,31 @@ class Nera_Prize_Risk_Postal {
 		if ( class_exists( 'Nera_Prize_Risk_Data' ) ) {
 			Nera_Prize_Risk_Data::flush_order( $order->get_id() );
 		}
+	}
+
+	/**
+	 * Whether the order has at least one lottery line and every lottery line totals £0.
+	 * Non-lottery lines don't count either way. Lottery test as in Nera_Prize_Risk_Data::get_rows().
+	 *
+	 * @param WC_Order $order Order.
+	 * @return bool
+	 */
+	private static function all_lottery_lines_free( $order ) {
+		$found = false;
+		foreach ( $order->get_items() as $item ) {
+			if ( ! $item instanceof WC_Order_Item_Product ) {
+				continue;
+			}
+			$product = $item->get_product();
+			if ( ! $product || ! is_callable( array( $product, 'get_lty_lottery_status' ) ) ) {
+				continue;
+			}
+			if ( abs( (float) $item->get_total() ) >= 0.005 ) {
+				return false;
+			}
+			$found = true;
+		}
+		return $found;
 	}
 
 	/**
