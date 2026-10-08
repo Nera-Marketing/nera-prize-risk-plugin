@@ -66,17 +66,19 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
-	 * Ticket price: LTY sale price when set, else LTY regular price (the product tab reads the same inputs).
+	 * Ticket price: the price LTY charges (sale price when the product is on sale, else regular).
 	 *
 	 * @param WC_Product $product Lottery product.
 	 * @return float
 	 */
 	public static function ticket_price( $product ) {
-		$sale = is_callable( array( $product, 'get_lty_sale_price' ) ) ? $product->get_lty_sale_price( 'edit' ) : '';
-		if ( is_numeric( $sale ) && (float) $sale > 0 ) {
-			return (float) $sale;
+		if ( ! is_callable( array( $product, 'get_lty_regular_price' ) ) ) {
+			return (float) $product->get_price( 'edit' );
 		}
-		return (float) ( is_callable( array( $product, 'get_lty_regular_price' ) ) ? $product->get_lty_regular_price( 'edit' ) : $product->get_price( 'edit' ) );
+		if ( is_callable( array( $product, 'is_on_sale' ) ) && $product->is_on_sale( 'edit' ) && is_callable( array( $product, 'get_lty_sale_price' ) ) ) {
+			return (float) $product->get_lty_sale_price( 'edit' );
+		}
+		return (float) $product->get_lty_regular_price( 'edit' );
 	}
 
 	/**

@@ -1,7 +1,7 @@
 /**
  * Prize risk tab: live break-even line on the product edit screen.
  *
- * Reads LTY's ticket price (sale price when set, else regular) and max tickets inputs plus the
+ * Reads LTY's ticket price (sale price when above 0 and below regular, else regular) and max tickets inputs plus the
  * Prize risk fields as typed, saved or not. Same text as Nera_Prize_Risk_Product::break_even_text().
  */
 (function ($, calc, cfg) {
@@ -20,7 +20,15 @@
 		if (raw === '') {
 			return null;
 		}
-		if (cfg.thousandSep) {
+		if (cfg.thousandSep && raw.indexOf(cfg.thousandSep) !== -1) {
+			// Thousand separators only in valid grouping positions (42,000 / 1,500.50); 2,5 is a typo, not 25.
+			var q = function (s) {
+				return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			};
+			var grouped = new RegExp('^\\d{1,3}(?:' + q(cfg.thousandSep) + '\\d{3})+(?:' + q(cfg.decimalPoint) + '\\d+)?$');
+			if (!grouped.test(raw)) {
+				return null;
+			}
 			raw = raw.split(cfg.thousandSep).join('');
 		}
 		raw = raw.split(cfg.decimalPoint).join('.');
@@ -33,7 +41,8 @@
 			return;
 		}
 		var sale = num('#_lty_sale_price');
-		var price = sale !== null && sale > 0 ? sale : num('#_lty_regular_price');
+		var regular = num('#_lty_regular_price');
+		var price = sale !== null && sale > 0 && regular !== null && sale < regular ? sale : regular;
 		var total = num('#_lty_maximum_tickets');
 		total = total === null ? 0 : Math.floor(total);
 		if (!(price > 0) || !(total > 0)) {

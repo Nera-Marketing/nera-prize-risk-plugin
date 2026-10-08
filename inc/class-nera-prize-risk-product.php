@@ -167,8 +167,17 @@ class Nera_Prize_Risk_Product {
 			return array( '', true );
 		}
 		$thousands  = wc_get_price_thousand_separator();
-		$normalised = '' !== $thousands ? str_replace( $thousands, '', $raw ) : $raw;
-		$normalised = str_replace( wc_get_price_decimal_separator(), '.', $normalised );
+		$decimal    = wc_get_price_decimal_separator();
+		$normalised = $raw;
+		if ( '' !== $thousands && false !== strpos( $raw, $thousands ) ) {
+			// Thousand separators only in valid grouping positions (42,000 / 1,500.50); 2,5 is a typo, not 25.
+			$grouped = '/^\d{1,3}(?:' . preg_quote( $thousands, '/' ) . '\d{3})+(?:' . preg_quote( $decimal, '/' ) . '\d+)?$/';
+			if ( ! preg_match( $grouped, $raw ) ) {
+				return array( '', false );
+			}
+			$normalised = str_replace( $thousands, '', $raw );
+		}
+		$normalised = str_replace( $decimal, '.', $normalised );
 		if ( ! is_numeric( $normalised ) || (float) $normalised < 0 ) {
 			return array( '', false );
 		}
