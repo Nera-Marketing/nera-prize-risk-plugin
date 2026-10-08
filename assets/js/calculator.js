@@ -73,6 +73,8 @@
 			out('break_even', EMPTY, '');
 		} else if (pct === null) {
 			out('break_even', group(String(tix)), '');
+		} else if (!calc.can_break_even(tix, total)) {
+			out('break_even', (i18n.warning || "Can't break even: needs %1$s tickets, only %2$s exist.").replace('%1$s', group(String(tix))).replace('%2$s', group(String(Math.floor(total)))), 'warning');
 		} else {
 			out('break_even', (i18n.tickets || '%1$s tickets (%2$s%%)').replace('%1$s', group(String(tix))).replace('%2$s', fixed(pct * 100, 1)).replace('%%', '%'), '');
 		}

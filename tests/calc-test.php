@@ -56,5 +56,13 @@ if ( null !== $c::break_even_tix( 100, 0 ) || null !== $c::break_even_pct( 10, 0
 	echo "zero guards  FAIL\n";
 }
 
+// Break-even reachable within total tickets.
+if ( false !== $c::can_break_even( 771, 200 ) || true !== $c::can_break_even( 8537, 15000 ) || true !== $c::can_break_even( 200, 200 ) || true !== $c::can_break_even( null, 200 ) ) {
+	++$fail;
+	echo "can_break_even  FAIL\n";
+} else {
+	echo "can_break_even 771/200 false, 8537/15000 true, 200/200 true\n";
+}
+
 echo $fail ? "FAILED: $fail\n" : "OK\n";
 exit( $fail ? 1 : 0 );

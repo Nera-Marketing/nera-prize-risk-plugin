@@ -211,6 +211,8 @@ class Nera_Prize_Risk_Admin {
 					'empty'   => '—',
 					/* translators: 1: tickets, 2: percent of total tickets */
 					'tickets' => __( '%1$s tickets (%2$s%%)', 'nera-prize-risk' ),
+					/* translators: 1: break-even tickets, 2: total tickets */
+					'warning' => __( 'Can\'t break even: needs %1$s tickets, only %2$s exist.', 'nera-prize-risk' ),
 					'profit'  => __( 'profit', 'nera-prize-risk' ),
 					'loss'    => __( 'loss', 'nera-prize-risk' ),
 				),

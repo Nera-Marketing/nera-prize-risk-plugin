@@ -36,5 +36,7 @@ check('sell_through@6000', c.sell_through(paid, free, totalTickets), 0.4, 4)
 if (Math.abs(soldOut - (4.92 * totalTickets - totalCost)) < 1) { fail++; console.log('net_price was rounded before use  FAIL') }
 if (c.break_even_tix(100, 0) !== null || c.break_even_pct(10, 0) !== null || c.sell_through(1, 0, 0) !== null) { fail++; console.log('zero guards  FAIL') }
 
+if (c.can_break_even(771, 200) !== false || c.can_break_even(8537, 15000) !== true || c.can_break_even(200, 200) !== true || c.can_break_even(null, 200) !== true) { fail++; console.log('can_break_even  FAIL') } else console.log('can_break_even 771/200 false, 8537/15000 true, 200/200 true')
+
 console.log(fail ? `FAILED: ${fail}` : 'OK')
 process.exit(fail ? 1 : 0)

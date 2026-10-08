@@ -166,6 +166,19 @@ class Nera_Prize_Risk_Table {
 			printf( '<td class="column-revenue" data-value="%s">%s</td>', esc_attr( self::raw( $row['revenue_net'] ) ), esc_html( self::money( $row['revenue_net'], 0 ) ) );
 			if ( null === $row['break_even_tix'] ) {
 				echo '<td class="column-break_even">—</td>';
+			} elseif ( ! Nera_Prize_Risk_Calc::can_break_even( $row['break_even_tix'], $row['max'] ) ) {
+				printf(
+					'<td class="column-break_even"><span class="nera-prize-risk-warning">%s</span>' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
+					esc_html__( 'Can\'t break even', 'nera-prize-risk' ),
+					esc_html(
+						sprintf(
+							/* translators: 1: break-even tickets, 2: total tickets */
+							__( 'needs %1$s of %2$s', 'nera-prize-risk' ),
+							number_format_i18n( $row['break_even_tix'] ),
+							number_format_i18n( $row['max'] )
+						)
+					)
+				);
 			} else {
 				printf(
 					'<td class="column-break_even">%s' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
