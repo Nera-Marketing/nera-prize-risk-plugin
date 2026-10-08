@@ -64,7 +64,8 @@ $nera_prize_risk_filter_labels = array(
 	</form>
 
 	<?php
-	Nera_Prize_Risk_Table::render_summary( Nera_Prize_Risk_Data::rollup( $rows, 'category' )['total'], Nera_Prize_Risk_Data::live_exposure( $rows ) );
+	$by_category = Nera_Prize_Risk_Data::rollup( $rows, 'category' );
+	Nera_Prize_Risk_Table::render_summary( $by_category['total'], Nera_Prize_Risk_Data::live_exposure( $rows ) );
 
 	if ( 'items' === $view ) {
 		Nera_Prize_Risk_Table::render_rollup( Nera_Prize_Risk_Data::rollup( $rows, 'title' ), 'title', __( 'Item', 'nera-prize-risk' ) );
@@ -77,7 +78,7 @@ $nera_prize_risk_filter_labels = array(
 	?>
 
 	<h2 class="nera-prize-risk-rollup-title"><?php esc_html_e( 'By category', 'nera-prize-risk' ); ?></h2>
-	<?php Nera_Prize_Risk_Table::render_rollup( Nera_Prize_Risk_Data::rollup( $rows, 'category' ), 'category', __( 'Category', 'nera-prize-risk' ) ); ?>
+	<?php Nera_Prize_Risk_Table::render_rollup( $by_category, 'category', __( 'Category', 'nera-prize-risk' ) ); ?>
 
 	<h2 class="nera-prize-risk-rollup-title"><?php esc_html_e( 'By month', 'nera-prize-risk' ); ?></h2>
 	<?php Nera_Prize_Risk_Table::render_rollup( Nera_Prize_Risk_Data::rollup( $rows, 'month' ), 'month', __( 'Month (close date)', 'nera-prize-risk' ) ); ?>

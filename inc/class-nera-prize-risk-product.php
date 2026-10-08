@@ -14,7 +14,6 @@ class Nera_Prize_Risk_Product {
 
 	const META_PRIZE_COST  = '_nera_prize_cost';
 	const META_OTHER_COSTS = '_nera_other_costs';
-	const OPTION_FEE_PCT   = 'nera_prize_risk_fee_pct';
 
 	/**
 	 * Hook in.
@@ -34,8 +33,7 @@ class Nera_Prize_Risk_Product {
 	 * @return float
 	 */
 	public static function fee_fraction() {
-		$pct = get_option( self::OPTION_FEE_PCT, 0 );
-		return is_numeric( $pct ) ? max( 0, (float) $pct ) / 100 : 0.0;
+		return Nera_Prize_Risk_Data::fee_pct() / 100;
 	}
 
 	/**
@@ -52,20 +50,6 @@ class Nera_Prize_Risk_Product {
 			'priority' => 90,
 		);
 		return $tabs;
-	}
-
-	/**
-	 * Ticket price used for the plan line: LTY sale price when set, else regular price.
-	 *
-	 * @param WC_Product $product Product.
-	 * @return string
-	 */
-	private static function ticket_price( $product ) {
-		$sale = is_callable( array( $product, 'get_lty_sale_price' ) ) ? $product->get_lty_sale_price( 'edit' ) : '';
-		if ( is_numeric( $sale ) && (float) $sale > 0 ) {
-			return (string) $sale;
-		}
-		return is_callable( array( $product, 'get_lty_regular_price' ) ) ? (string) $product->get_lty_regular_price( 'edit' ) : (string) $product->get_price( 'edit' );
 	}
 
 	/**
@@ -90,6 +74,14 @@ class Nera_Prize_Risk_Product {
 		$pct        = Nera_Prize_Risk_Calc::break_even_pct( $tix, $total );
 		$profit     = round( $total * $net - $total_cost );
 		$symbol     = html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' );
+
+		if ( null === $tix ) {
+			return sprintf(
+				/* translators: %s: sold out loss with currency */
+				__( 'Can\'t break even: the payment fee takes the whole ticket price. Sold out loss: %s.', 'nera-prize-risk' ),
+				$symbol . number_format( abs( $profit ) )
+			);
+		}
 
 		if ( ! Nera_Prize_Risk_Calc::can_break_even( $tix, $total ) ) {
 			return sprintf(
@@ -124,7 +116,7 @@ class Nera_Prize_Risk_Product {
 		$other_costs = $product ? $product->get_meta( self::META_OTHER_COSTS, true, 'edit' ) : '';
 		$symbol      = get_woocommerce_currency_symbol();
 		$total       = ( $product && is_callable( array( $product, 'get_lty_maximum_tickets' ) ) ) ? $product->get_lty_maximum_tickets( 'edit' ) : '';
-		$line        = self::break_even_text( $product ? self::ticket_price( $product ) : '', $total, $prize_cost, $other_costs );
+		$line        = self::break_even_text( $product ? Nera_Prize_Risk_Data::ticket_price( $product ) : '', $total, $prize_cost, $other_costs );
 
 		echo '<div id="nera_prize_risk_tab" class="panel woocommerce_options_panel hidden"><div class="options_group">';
 
@@ -174,7 +166,9 @@ class Nera_Prize_Risk_Product {
 		if ( '' === $raw ) {
 			return array( '', true );
 		}
-		$normalised = str_replace( wc_get_price_decimal_separator(), '.', $raw );
+		$thousands  = wc_get_price_thousand_separator();
+		$normalised = '' !== $thousands ? str_replace( $thousands, '', $raw ) : $raw;
+		$normalised = str_replace( wc_get_price_decimal_separator(), '.', $normalised );
 		if ( ! is_numeric( $normalised ) || (float) $normalised < 0 ) {
 			return array( '', false );
 		}
@@ -242,12 +236,15 @@ class Nera_Prize_Risk_Product {
 				'feeFraction'    => self::fee_fraction(),
 				'currencySymbol' => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
 				'decimalPoint'   => wc_get_price_decimal_separator(),
+				'thousandSep'    => wc_get_price_thousand_separator(),
 				'i18n'           => array(
 					'missing' => __( 'Set ticket price and total tickets to see break-even', 'nera-prize-risk' ),
 					/* translators: 1: break-even tickets, 2: percent of total, 3: total tickets, 4: sold out profit with currency */
 					'line'    => __( 'Break-even: %1$s tickets (%2$s%% of %3$s). Sold out profit: %4$s.', 'nera-prize-risk' ),
 					/* translators: 1: break-even tickets, 2: total tickets, 3: sold out loss with currency */
 					'warning' => __( 'Can\'t break even: needs %1$s tickets, only %2$s exist. Sold out loss: %3$s.', 'nera-prize-risk' ),
+					/* translators: %s: sold out loss with currency */
+					'noNet'   => __( 'Can\'t break even: the payment fee takes the whole ticket price. Sold out loss: %s.', 'nera-prize-risk' ),
 				),
 			)
 		);

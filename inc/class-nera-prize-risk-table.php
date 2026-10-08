@@ -112,13 +112,6 @@ class Nera_Prize_Risk_Table {
 	}
 
 	/**
-	 * Output the table.
-	 *
-	 * @param array[] $rows          Rows from Nera_Prize_Risk_Data::get_rows() (filtered).
-	 * @param string  $empty_message Message when there are no rows (default: nothing costed yet).
-	 * @return void
-	 */
-	/**
 	 * Calculator values for a row's "Model this" action: costs kept separate, sell-through as a percent to 1 dp.
 	 *
 	 * @param array $row Row from Nera_Prize_Risk_Data::build_row().
@@ -139,6 +132,13 @@ class Nera_Prize_Risk_Table {
 		);
 	}
 
+	/**
+	 * Output the table.
+	 *
+	 * @param array[] $rows          Rows from Nera_Prize_Risk_Data::get_rows() (filtered).
+	 * @param string  $empty_message Message when there are no rows (default: nothing costed yet).
+	 * @return void
+	 */
 	public static function render( $rows, $empty_message = '' ) {
 		$columns = self::columns();
 		echo '<div class="nera-prize-risk-table-wrap"><table class="widefat striped nera-prize-risk-table" id="nera-prize-risk-table"><thead><tr>';
@@ -185,7 +185,7 @@ class Nera_Prize_Risk_Table {
 			printf(
 				'<td class="column-sold" data-value="%s">%s' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
 				esc_attr( null === $row['sell_through'] ? '' : self::raw( $row['sell_through'], 6 ) ),
-				esc_html( number_format_i18n( $row['paid'] ) . ' / ' . number_format_i18n( $row['max'] ) ),
+				esc_html( number_format_i18n( $row['paid'] + $row['free'] ) . ' / ' . number_format_i18n( $row['max'] ) ),
 				esc_html( self::pct( $row['sell_through'] ) )
 			);
 			printf( '<td class="column-free" data-value="%d">%s</td>', (int) $row['free'], esc_html( number_format_i18n( $row['free'] ) ) );

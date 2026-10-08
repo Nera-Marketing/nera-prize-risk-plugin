@@ -19,7 +19,7 @@ class Nera_Prize_Risk_Admin {
 	const CALC_SLUG      = 'nera-prize-risk-calculator';
 	const SETTINGS_SLUG  = 'nera-prize-risk-settings';
 	const SETTINGS_GROUP = 'nera_prize_risk_settings';
-	const OPTION_FEE_PCT = 'nera_prize_risk_fee_pct';
+	const OPTION_FEE_PCT = Nera_Prize_Risk_Data::OPTION_FEE_PCT;
 
 	/**
 	 * Report page hook suffix.
@@ -53,8 +53,7 @@ class Nera_Prize_Risk_Admin {
 	 * @return float
 	 */
 	public static function fee_pct() {
-		$pct = get_option( self::OPTION_FEE_PCT, 0 );
-		return is_numeric( $pct ) ? max( 0, min( 100, (float) $pct ) ) : 0.0;
+		return Nera_Prize_Risk_Data::fee_pct();
 	}
 
 	/**
