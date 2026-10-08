@@ -143,7 +143,7 @@ class Nera_Prize_Risk_Table {
 		$columns = self::columns();
 		echo '<div class="nera-prize-risk-table-wrap"><table class="widefat striped nera-prize-risk-table" id="nera-prize-risk-table"><thead><tr>';
 		foreach ( $columns as $key => $label ) {
-			printf( '<th scope="col" class="column-%s">%s</th>', esc_attr( $key ), esc_html( $label ) );
+			self::sort_th( $key, $label );
 		}
 		echo '</tr></thead><tbody>';
 
@@ -159,7 +159,8 @@ class Nera_Prize_Risk_Table {
 			$sub = '<br><span class="description nera-prize-risk-sub">%s</span>';
 			printf( '<tr data-product-id="%d">', (int) $row['id'] );
 			printf(
-				'<td class="column-competition"><a href="%s">%s</a><div class="row-actions visible"><button type="button" class="button-link nera-prize-risk-model" data-calc="%s">%s</button></div></td>',
+				'<td class="column-competition" data-sort="%s"><a href="%s">%s</a><div class="row-actions visible"><button type="button" class="button-link nera-prize-risk-model" data-calc="%s">%s</button></div></td>',
+				esc_attr( $row['title'] ),
 				esc_url( admin_url( 'post.php?post=' . (int) $row['id'] . '&action=edit' ) ),
 				esc_html( $row['title'] ),
 				esc_attr( wp_json_encode( self::model_values( $row ) ) ),
@@ -172,26 +173,29 @@ class Nera_Prize_Risk_Table {
 				esc_html( Nera_Prize_Risk_Data::status_label( $row['status'] ) )
 			);
 			$closes_time = self::closes( $row['end_date'], 'time' );
+			$closes_ts   = $row['end_date'] ? strtotime( $row['end_date'] ) : false;
 			printf(
-				'<td class="column-closes">%s%s</td>',
+				'<td class="column-closes" data-value="%s">%s%s</td>',
+				esc_attr( $closes_ts ? (string) $closes_ts : '' ),
 				esc_html( self::closes( $row['end_date'], 'date' ) ),
 				'' === $closes_time ? '' : sprintf( $sub, esc_html( $closes_time ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup, escaped value.
 			);
 			printf( '<td class="column-prize_cost" data-value="%s">%s</td>', esc_attr( self::raw( $row['total_cost'] ) ), esc_html( self::money( $row['total_cost'], 0 ) ) );
-			printf( '<td class="column-ticket_price">%s</td>', esc_html( self::money( $row['ticket_price'] ) ) );
+			printf( '<td class="column-ticket_price" data-value="%s">%s</td>', esc_attr( self::raw( $row['ticket_price'] ) ), esc_html( self::money( $row['ticket_price'] ) ) );
 			printf(
 				'<td class="column-sold" data-value="%s">%s' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
 				esc_attr( null === $row['sell_through'] ? '' : self::raw( $row['sell_through'], 6 ) ),
 				esc_html( number_format_i18n( $row['paid'] ) . ' / ' . number_format_i18n( $row['max'] ) ),
 				esc_html( self::pct( $row['sell_through'] ) )
 			);
-			printf( '<td class="column-free">%s</td>', esc_html( number_format_i18n( $row['free'] ) ) );
+			printf( '<td class="column-free" data-value="%d">%s</td>', (int) $row['free'], esc_html( number_format_i18n( $row['free'] ) ) );
 			printf( '<td class="column-revenue" data-value="%s">%s</td>', esc_attr( self::raw( $row['revenue_net'] ) ), esc_html( self::money( $row['revenue_net'], 0 ) ) );
 			if ( null === $row['break_even_tix'] ) {
-				echo '<td class="column-break_even">—</td>';
+				echo '<td class="column-break_even" data-value="">—</td>';
 			} elseif ( ! Nera_Prize_Risk_Calc::can_break_even( $row['break_even_tix'], $row['max'] ) ) {
 				printf(
-					'<td class="column-break_even"><span class="nera-prize-risk-warning">%s</span>' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
+					'<td class="column-break_even" data-value="%s"><span class="nera-prize-risk-warning">%s</span>' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
+					esc_attr( self::raw( $row['break_even_tix'], 0 ) ),
 					esc_html__( 'Can\'t break even', 'nera-prize-risk' ),
 					esc_html(
 						sprintf(
@@ -204,7 +208,8 @@ class Nera_Prize_Risk_Table {
 				);
 			} else {
 				printf(
-					'<td class="column-break_even">%s' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
+					'<td class="column-break_even" data-value="%s">%s' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
+					esc_attr( self::raw( $row['break_even_tix'], 0 ) ),
 					esc_html( number_format_i18n( $row['break_even_tix'] ) ),
 					esc_html( self::pct( $row['break_even_pct'] ) )
 				);
@@ -219,6 +224,23 @@ class Nera_Prize_Risk_Table {
 		}
 
 		echo '</tbody></table></div>';
+	}
+
+	/**
+	 * Sortable column header: a button with WP's sorting indicators (assets/js/sort.js sorts client-side).
+	 *
+	 * @param string $key   Column key (class column-<key>).
+	 * @param string $label Heading.
+	 * @param string $title Optional title attribute.
+	 * @return void
+	 */
+	private static function sort_th( $key, $label, $title = '' ) {
+		printf(
+			'<th scope="col" class="column-%s sortable"%s><button type="button" class="nera-prize-risk-sort"><span>%s</span><span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span></button></th>',
+			esc_attr( $key ),
+			$title ? ' title="' . esc_attr( $title ) . '"' : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+			esc_html( $label )
+		);
 	}
 
 	/**
@@ -281,18 +303,12 @@ class Nera_Prize_Risk_Table {
 	public static function render_rollup( $rollup, $key, $label ) {
 		$columns = self::rollup_columns();
 		printf(
-			'<div class="nera-prize-risk-table-wrap"><table class="widefat striped nera-prize-risk-table nera-prize-risk-rollup" id="nera-prize-risk-rollup-%s"><thead><tr><th scope="col" class="column-label">%s</th>',
-			esc_attr( $key ),
-			esc_html( $label )
+			'<div class="nera-prize-risk-table-wrap"><table class="widefat striped nera-prize-risk-table nera-prize-risk-rollup" id="nera-prize-risk-rollup-%s"><thead><tr>',
+			esc_attr( $key )
 		);
+		self::sort_th( 'label', $label );
 		foreach ( $columns as $col => $heading ) {
-			$title = 'avg_sell_through' === $col ? __( "Mean of each competition's sell-through", 'nera-prize-risk' ) : '';
-			printf(
-				'<th scope="col" class="column-%s"%s>%s</th>',
-				esc_attr( $col ),
-				$title ? ' title="' . esc_attr( $title ) . '"' : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
-				esc_html( $heading )
-			);
+			self::sort_th( $col, $heading, 'avg_sell_through' === $col ? __( "Mean of each competition's sell-through", 'nera-prize-risk' ) : '' );
 		}
 		echo '</tr></thead><tbody>';
 
@@ -300,7 +316,12 @@ class Nera_Prize_Risk_Table {
 			printf( '<tr class="no-items"><td colspan="%d">%s</td></tr>', count( $columns ) + 1, esc_html__( 'No competitions to sum.', 'nera-prize-risk' ) );
 		}
 		foreach ( $rollup['groups'] as $group ) {
-			printf( '<tr data-key="%s"><th scope="row" class="column-label">%s</th>', esc_attr( $group['key'] ), esc_html( $group['label'] ) );
+			printf(
+				'<tr data-key="%s"><th scope="row" class="column-label"%s>%s</th>',
+				esc_attr( $group['key'] ),
+				'month' === $key ? ' data-sort="' . esc_attr( $group['key'] ) . '"' : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+				esc_html( $group['label'] )
+			);
 			self::rollup_cells( $group );
 			echo '</tr>';
 		}
