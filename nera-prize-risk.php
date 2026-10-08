@@ -157,3 +157,17 @@ add_action(
 		Nera_Prize_Risk_Product::init();
 	}
 );
+
+/**
+ * Admin: Prize Risk menu (report screen with calculator, settings).
+ */
+add_action(
+	'nera_prize_risk_loaded',
+	static function () {
+		if ( ! is_admin() ) {
+			return;
+		}
+		require_once NERA_PRIZE_RISK_PLUGIN_DIR . 'inc/class-nera-prize-risk-admin.php';
+		Nera_Prize_Risk_Admin::init();
+	}
+);
