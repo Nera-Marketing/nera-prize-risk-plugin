@@ -36,7 +36,7 @@
 		}
 		raw = raw.split(cfg.decimalPoint).join('.');
 		// Plain decimals only: no sign, exponent (1e3) or hex.
-		return /^\d+(\.\d+)?$/.test(raw) ? Number(raw) : NaN;
+		return /^(\d+(\.\d*)?|\.\d+)$/.test(raw) ? Number(raw) : NaN;
 	};
 
 	// LTY fields, read the way LTY saves them (wc_format_decimal): decimal separator to '.', keep the last '.',
@@ -63,14 +63,15 @@
 		var price = free ? 0 : sale !== null && regular !== null && regular > sale ? sale : regular;
 		var total = lty('#_lty_maximum_tickets');
 		total = total === null ? 0 : Math.floor(total);
-		if (!(price > 0) || !(total > 0)) {
-			$line.text(cfg.i18n.missing);
-			return;
-		}
+		// An invalid cost wins over a missing price or total.
 		var prize = own('#_nera_prize_cost');
 		var other = own('#_nera_other_costs');
 		if (isNaN(prize) || isNaN(other)) {
 			$line.text(cfg.i18n.invalid);
+			return;
+		}
+		if (!(price > 0) || !(total > 0)) {
+			$line.text(cfg.i18n.missing);
 			return;
 		}
 		var net = calc.net_price(price, cfg.feeFraction);

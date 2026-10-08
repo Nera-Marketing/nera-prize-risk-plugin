@@ -179,7 +179,7 @@ class Nera_Prize_Risk_Product {
 		}
 		$normalised = str_replace( $decimal, '.', $normalised );
 		// Plain decimals only: no sign, exponent (1e3) or hex, which is_numeric() would accept.
-		if ( ! preg_match( '/^\d+(\.\d+)?$/', $normalised ) ) {
+		if ( ! preg_match( '/^(\d+(\.\d*)?|\.\d+)$/', $normalised ) ) {
 			return array( '', false );
 		}
 		return array( wc_format_decimal( $normalised ), true );
