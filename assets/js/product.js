@@ -20,6 +20,9 @@
 		if (raw === '') {
 			return null;
 		}
+		if (cfg.thousandSep) {
+			raw = raw.split(cfg.thousandSep).join('');
+		}
 		raw = raw.split(cfg.decimalPoint).join('.');
 		return isFinite(raw) ? Number(raw) : null;
 	};
@@ -43,6 +46,10 @@
 		var pct = calc.break_even_pct(tix, total);
 		var profit = Math.round(total * net - cost);
 		var money = (profit < 0 ? '-' : '') + cfg.currencySymbol + fmt(Math.abs(profit), 0);
+		if (tix === null) {
+			$line.text(cfg.i18n.noNet.replace('%s', cfg.currencySymbol + fmt(Math.abs(profit), 0)));
+			return;
+		}
 		if (!calc.can_break_even(tix, total)) {
 			$line.text(
 				cfg.i18n.warning

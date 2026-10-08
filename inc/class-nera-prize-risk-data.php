@@ -22,8 +22,9 @@ use Automattic\WooCommerce\Utilities\OrderUtil;
  */
 class Nera_Prize_Risk_Data {
 
-	const CACHE_PREFIX = 'nera_prize_risk_fig_';
-	const CACHE_TTL    = 600;
+	const CACHE_PREFIX   = 'nera_prize_risk_fig_';
+	const CACHE_TTL      = 600;
+	const OPTION_FEE_PCT = 'nera_prize_risk_fee_pct';
 
 	/**
 	 * Order statuses whose lines count (task.md §5).
@@ -45,6 +46,37 @@ class Nera_Prize_Risk_Data {
 		add_action( 'woocommerce_trash_order', array( __CLASS__, 'flush_order' ), 10, 1 );
 		add_action( 'woocommerce_untrash_order', array( __CLASS__, 'flush_order' ), 10, 1 );
 		add_action( 'woocommerce_update_product', array( __CLASS__, 'flush_product' ), 10, 1 );
+		// Line items edited or removed without a status change, bulk and REST edits.
+		add_action( 'woocommerce_update_order', array( __CLASS__, 'flush_order' ), 10, 1 );
+		add_action( 'woocommerce_before_delete_order_item', array( __CLASS__, 'flush_order_item' ), 10, 1 );
+		// CPT storage: trashing from the posts list goes through wp_trash_post, not the order data store.
+		add_action( 'wp_trash_post', array( __CLASS__, 'flush_order_post' ), 10, 1 );
+		add_action( 'untrashed_post', array( __CLASS__, 'flush_order_post' ), 10, 1 );
+		add_action( 'before_delete_post', array( __CLASS__, 'flush_order_post' ), 10, 1 );
+	}
+
+	/**
+	 * Payment fee percent from the settings screen, clamped to 0–100 (1.4 means 1.4%).
+	 *
+	 * @return float
+	 */
+	public static function fee_pct() {
+		$pct = get_option( self::OPTION_FEE_PCT, 0 );
+		return is_numeric( $pct ) ? max( 0, min( 100, (float) $pct ) ) : 0.0;
+	}
+
+	/**
+	 * Ticket price: LTY sale price when set, else LTY regular price (the product tab reads the same inputs).
+	 *
+	 * @param WC_Product $product Lottery product.
+	 * @return float
+	 */
+	public static function ticket_price( $product ) {
+		$sale = is_callable( array( $product, 'get_lty_sale_price' ) ) ? $product->get_lty_sale_price( 'edit' ) : '';
+		if ( is_numeric( $sale ) && (float) $sale > 0 ) {
+			return (float) $sale;
+		}
+		return (float) ( is_callable( array( $product, 'get_lty_regular_price' ) ) ? $product->get_lty_regular_price( 'edit' ) : $product->get_price( 'edit' ) );
 	}
 
 	/**
@@ -77,6 +109,29 @@ class Nera_Prize_Risk_Data {
 	 */
 	public static function flush_refund_parent( $refund_id, $order_id ) {
 		self::flush_order( $order_id );
+	}
+
+	/**
+	 * Order line about to be deleted: clear its product (the order's save no longer lists it).
+	 *
+	 * @param int $item_id Order item id.
+	 * @return void
+	 */
+	public static function flush_order_item( $item_id ) {
+		$product_id = wc_get_order_item_meta( $item_id, '_product_id', true );
+		self::flush_product( (int) $product_id );
+	}
+
+	/**
+	 * CPT order trashed, restored or deleted through the posts API.
+	 *
+	 * @param int $post_id Post id.
+	 * @return void
+	 */
+	public static function flush_order_post( $post_id ) {
+		if ( in_array( get_post_type( $post_id ), array( 'shop_order', 'shop_order_refund' ), true ) ) {
+			self::flush_order( $post_id );
+		}
 	}
 
 	/**
@@ -146,8 +201,7 @@ class Nera_Prize_Risk_Data {
 	 * @return array[]
 	 */
 	public static function get_rows() {
-		$pct  = get_option( 'nera_prize_risk_fee_pct', 0 );
-		$fee  = is_numeric( $pct ) ? max( 0, min( 100, (float) $pct ) ) / 100 : 0.0;
+		$fee  = self::fee_pct() / 100;
 		$rows = array();
 		foreach ( self::product_ids() as $id ) {
 			$product = wc_get_product( $id );
@@ -183,12 +237,12 @@ class Nera_Prize_Risk_Data {
 	 */
 	public static function build_row( $product, $fee ) {
 		$id      = $product->get_id();
-		$figures = self::get_figures( $id );
+		$figures = self::get_figures( $product );
 
 		$prize_cost  = (float) $product->get_meta( '_nera_prize_cost', true, 'edit' );
 		$other_costs = (float) $product->get_meta( '_nera_other_costs', true, 'edit' );
 		$total_cost  = Nera_Prize_Risk_Calc::total_cost( $prize_cost, $other_costs );
-		$price      = (float) $product->get_price( 'edit' );
+		$price      = self::ticket_price( $product );
 		$max        = (int) $product->get_lty_maximum_tickets();
 		$free       = (int) $figures['free'];
 		$paid       = max( 0, (int) $product->get_purchased_ticket_count() - $free );
@@ -377,19 +431,41 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
-	 * Order-derived figures, cached for 10 minutes: gross line totals minus refunds, and free entries.
+	 * The current run's order window, matching LTY's purchased ticket count: from the current
+	 * start (or relist) date, up to the end date except for unlimited scheduled lotteries.
 	 *
-	 * @param int $product_id Product id.
+	 * @param WC_Product $product Lottery product.
+	 * @return array{from:string,to:string} GMT dates, '' when unbounded.
+	 */
+	public static function run_window( $product ) {
+		$from      = is_callable( array( $product, 'get_current_start_date_gmt' ) ) ? (string) $product->get_current_start_date_gmt() : '';
+		$to        = '';
+		$unlimited = is_callable( array( $product, 'is_unlimited_scheduled_lottery' ) ) && $product->is_unlimited_scheduled_lottery();
+		if ( ! $unlimited && is_callable( array( $product, 'get_lty_end_date_gmt' ) ) ) {
+			$to = (string) $product->get_lty_end_date_gmt();
+		}
+		return array(
+			'from' => $from,
+			'to'   => $to,
+		);
+	}
+
+	/**
+	 * Order-derived figures for the current run, cached for 10 minutes: gross line totals minus refunds, and free entries.
+	 *
+	 * @param WC_Product $product Lottery product.
 	 * @return array{gross:float,free:int}
 	 */
-	public static function get_figures( $product_id ) {
-		$key    = self::CACHE_PREFIX . absint( $product_id );
-		$cached = get_transient( $key );
-		if ( is_array( $cached ) && isset( $cached['gross'], $cached['free'] ) ) {
+	public static function get_figures( $product ) {
+		$product_id = $product->get_id();
+		$window     = self::run_window( $product );
+		$key        = self::CACHE_PREFIX . absint( $product_id );
+		$cached     = get_transient( $key );
+		if ( is_array( $cached ) && isset( $cached['gross'], $cached['free'], $cached['window'] ) && $cached['window'] === $window ) {
 			return $cached;
 		}
 
-		$lines   = self::paid_status_lines( $product_id );
+		$lines   = self::paid_status_lines( $product_id, $window );
 		$gross   = 0.0;
 		$item_id = array();
 		foreach ( $lines as $line ) {
@@ -399,8 +475,9 @@ class Nera_Prize_Risk_Data {
 		$gross -= self::refunded_for_items( $item_id );
 
 		$figures = array(
-			'gross' => $gross,
-			'free'  => self::count_free_entries( $product_id, $lines ),
+			'gross'  => $gross,
+			'free'   => self::count_free_entries( $product_id, $lines ),
+			'window' => $window,
 		);
 		set_transient( $key, $figures, self::CACHE_TTL );
 
@@ -412,12 +489,13 @@ class Nera_Prize_Risk_Data {
 	 * orders. A 100% coupon also gives a £0 line and counts here. Change the rule only in this method.
 	 *
 	 * @param int        $product_id Product id.
-	 * @param array|null $lines      Lines from paid_status_lines(), to avoid a second query.
+	 * @param array|null $lines      Lines from paid_status_lines(), to avoid a second query (null: the current run's lines).
 	 * @return int
 	 */
 	public static function count_free_entries( $product_id, $lines = null ) {
 		if ( null === $lines ) {
-			$lines = self::paid_status_lines( $product_id );
+			$product = wc_get_product( $product_id );
+			$lines   = $product ? self::paid_status_lines( $product_id, self::run_window( $product ) ) : array();
 		}
 		$free = 0;
 		foreach ( $lines as $line ) {
@@ -431,12 +509,13 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
-	 * The product's line items in processing/completed orders.
+	 * The product's line items in processing/completed orders created within the run window.
 	 *
-	 * @param int $product_id Product id.
+	 * @param int   $product_id Product id.
+	 * @param array $window     From run_window(): GMT 'from' / 'to', '' when unbounded.
 	 * @return array[] order_item_id, line_total, qty, tickets.
 	 */
-	private static function paid_status_lines( $product_id ) {
+	private static function paid_status_lines( $product_id, $window ) {
 		global $wpdb;
 
 		$statuses = array_map(
@@ -450,8 +529,19 @@ class Nera_Prize_Risk_Data {
 		if ( OrderUtil::custom_orders_table_usage_is_enabled() ) {
 			$orders = OrderUtil::get_table_for_orders();
 			$join   = "INNER JOIN {$orders} o ON o.id = oi.order_id AND o.type = 'shop_order' AND o.status IN ({$in})";
+			$date   = 'o.date_created_gmt';
 		} else {
 			$join = "INNER JOIN {$wpdb->posts} o ON o.ID = oi.order_id AND o.post_type = 'shop_order' AND o.post_status IN ({$in})";
+			$date = 'o.post_date_gmt';
+		}
+		$args = array_merge( array( absint( $product_id ) ), $statuses );
+		if ( '' !== $window['from'] ) {
+			$join  .= " AND {$date} >= %s";
+			$args[] = $window['from'];
+		}
+		if ( '' !== $window['to'] ) {
+			$join  .= " AND {$date} <= %s";
+			$args[] = $window['to'];
 		}
 
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- table names and placeholders built above.
@@ -464,7 +554,7 @@ class Nera_Prize_Risk_Data {
 			LEFT JOIN {$wpdb->prefix}woocommerce_order_itemmeta q ON q.order_item_id = oi.order_item_id AND q.meta_key = '_qty'
 			LEFT JOIN {$wpdb->prefix}woocommerce_order_itemmeta tk ON tk.order_item_id = oi.order_item_id AND tk.meta_key = '_lty_lottery_tickets'
 			WHERE oi.order_item_type = 'line_item'",
-			array_merge( array( absint( $product_id ) ), $statuses )
+			$args
 		);
 		$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		// phpcs:enable
