@@ -300,3 +300,15 @@
 .nera-prize-risk-table .nera-prize-risk-model {
 	min-height: 24px;
 }
+/* Orders list: "Postal" mark for orders tagged as postal entries (WP-native badge). */
+.nera-prize-risk-postal-mark {
+	display: inline-block;
+	padding: 0 8px;
+	border-radius: 4px;
+	background: #f0f6fc;
+	color: #0a4b78;
+	border: 1px solid #c5d9ed;
+	font-size: 12px;
+	line-height: 2;
+	white-space: nowrap;
+}

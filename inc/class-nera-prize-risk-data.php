@@ -469,6 +469,10 @@ class Nera_Prize_Risk_Data {
 		$gross   = 0.0;
 		$item_id = array();
 		foreach ( $lines as $line ) {
+			// D-1: lines on orders tagged as postal entries bring no revenue (nor refunds), even with a price.
+			if ( self::is_postal_line( $line ) ) {
+				continue;
+			}
 			$gross    += (float) $line['line_total'];
 			$item_id[] = (int) $line['order_item_id'];
 		}
@@ -485,8 +489,19 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
-	 * Free (postal) entries, D-1 (provisional): tickets on £0-total lines in processing/completed
-	 * orders. A 100% coupon also gives a £0 line and counts here. Change the rule only in this method.
+	 * Whether a line sits on an order tagged "Postal entry" (order meta `_nera_postal_entry` = yes).
+	 *
+	 * @param array $line Line from paid_status_lines().
+	 * @return bool
+	 */
+	private static function is_postal_line( $line ) {
+		return isset( $line['postal'] ) && 'yes' === $line['postal'];
+	}
+
+	/**
+	 * Free (postal) entries, D-1 (updated by CHG-6): tickets on lines in processing/completed orders
+	 * that are tagged "Postal entry" OR have a £0 line total (the second layer; a 100% coupon also
+	 * gives a £0 line and counts here). Change the rule only here and in get_figures()' revenue skip.
 	 *
 	 * @param int        $product_id Product id.
 	 * @param array|null $lines      Lines from paid_status_lines(), to avoid a second query (null: the current run's lines).
@@ -499,7 +514,7 @@ class Nera_Prize_Risk_Data {
 		}
 		$free = 0;
 		foreach ( $lines as $line ) {
-			if ( abs( (float) $line['line_total'] ) >= 0.005 ) {
+			if ( ! self::is_postal_line( $line ) && abs( (float) $line['line_total'] ) >= 0.005 ) {
 				continue;
 			}
 			$tickets = maybe_unserialize( $line['tickets'] );
@@ -513,7 +528,7 @@ class Nera_Prize_Risk_Data {
 	 *
 	 * @param int   $product_id Product id.
 	 * @param array $window     From run_window(): GMT 'from' / 'to', '' when unbounded.
-	 * @return array[] order_item_id, line_total, qty, tickets.
+	 * @return array[] order_item_id, line_total, qty, tickets, postal ('yes' when the order is tagged a postal entry).
 	 */
 	private static function paid_status_lines( $product_id, $window ) {
 		global $wpdb;
@@ -530,9 +545,11 @@ class Nera_Prize_Risk_Data {
 			$orders = OrderUtil::get_table_for_orders();
 			$join   = "INNER JOIN {$orders} o ON o.id = oi.order_id AND o.type = 'shop_order' AND o.status IN ({$in})";
 			$date   = 'o.date_created_gmt';
+			$postal = 'SELECT MAX(pm.meta_value) FROM ' . OrderUtil::get_table_for_order_meta() . " pm WHERE pm.order_id = oi.order_id AND pm.meta_key = '_nera_postal_entry'";
 		} else {
-			$join = "INNER JOIN {$wpdb->posts} o ON o.ID = oi.order_id AND o.post_type = 'shop_order' AND o.post_status IN ({$in})";
-			$date = 'o.post_date_gmt';
+			$join   = "INNER JOIN {$wpdb->posts} o ON o.ID = oi.order_id AND o.post_type = 'shop_order' AND o.post_status IN ({$in})";
+			$date   = 'o.post_date_gmt';
+			$postal = "SELECT MAX(pm.meta_value) FROM {$wpdb->postmeta} pm WHERE pm.post_id = oi.order_id AND pm.meta_key = '_nera_postal_entry'";
 		}
 		$args = array_merge( array( absint( $product_id ) ), $statuses );
 		if ( '' !== $window['from'] ) {
@@ -546,7 +563,7 @@ class Nera_Prize_Risk_Data {
 
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- table names and placeholders built above.
 		$sql = $wpdb->prepare(
-			"SELECT oi.order_item_id, lt.meta_value AS line_total, q.meta_value AS qty, tk.meta_value AS tickets
+			"SELECT oi.order_item_id, lt.meta_value AS line_total, q.meta_value AS qty, tk.meta_value AS tickets, ({$postal}) AS postal
 			FROM {$wpdb->prefix}woocommerce_order_items oi
 			INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta pid ON pid.order_item_id = oi.order_item_id AND pid.meta_key = '_product_id' AND pid.meta_value = %d
 			{$join}
