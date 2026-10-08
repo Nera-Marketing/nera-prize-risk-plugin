@@ -46,8 +46,9 @@ class Nera_Prize_Risk_Data {
 		add_action( 'woocommerce_trash_order', array( __CLASS__, 'flush_order' ), 10, 1 );
 		add_action( 'woocommerce_untrash_order', array( __CLASS__, 'flush_order' ), 10, 1 );
 		add_action( 'woocommerce_update_product', array( __CLASS__, 'flush_product' ), 10, 1 );
-		// Line items edited or removed without a status change, bulk and REST edits.
-		add_action( 'woocommerce_update_order', array( __CLASS__, 'flush_order' ), 10, 1 );
+		// Line items edited in wp-admin (save items, Recalculate) without a status change. Not on
+		// the generic order-update action: that fires on every order save (checkout, gateways, cron).
+		add_action( 'woocommerce_saved_order_items', array( __CLASS__, 'flush_order' ), 10, 1 );
 		add_action( 'woocommerce_before_delete_order_item', array( __CLASS__, 'flush_order_item' ), 10, 1 );
 		// CPT storage: trashing from the posts list goes through wp_trash_post, not the order data store.
 		add_action( 'wp_trash_post', array( __CLASS__, 'flush_order_post' ), 10, 1 );
@@ -505,15 +506,11 @@ class Nera_Prize_Risk_Data {
 	 * that are tagged "Postal entry" OR have a £0 line total (the second layer; a 100% coupon also
 	 * gives a £0 line and counts here). Change the rule only here and in get_figures()' revenue skip.
 	 *
-	 * @param int        $product_id Product id.
-	 * @param array|null $lines      Lines from paid_status_lines(), to avoid a second query (null: the current run's lines).
+	 * @param int   $product_id Product id.
+	 * @param array $lines      Lines from paid_status_lines() for the product's run.
 	 * @return int
 	 */
-	public static function count_free_entries( $product_id, $lines = null ) {
-		if ( null === $lines ) {
-			$product = wc_get_product( $product_id );
-			$lines   = $product ? self::paid_status_lines( $product_id, self::run_window( $product ) ) : array();
-		}
+	public static function count_free_entries( $product_id, array $lines ) {
 		$free = 0;
 		foreach ( $lines as $line ) {
 			if ( ! self::is_postal_line( $line ) && abs( (float) $line['line_total'] ) >= 0.005 ) {
