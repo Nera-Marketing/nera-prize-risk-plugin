@@ -69,6 +69,20 @@ final class Nera_Prize_Risk_Calc {
 	}
 
 	/**
+	 * Whether a full sell-out reaches break-even: break_even_tix <= total_tickets.
+	 *
+	 * @param int|null $break_even_tix Break-even tickets.
+	 * @param int      $total_tickets  Total tickets.
+	 * @return bool True when break-even is reachable, or when either input is missing (nothing to warn about).
+	 */
+	public static function can_break_even( $break_even_tix, $total_tickets ) {
+		if ( null === $break_even_tix || (int) $total_tickets <= 0 ) {
+			return true;
+		}
+		return (int) $break_even_tix <= (int) $total_tickets;
+	}
+
+	/**
 	 * Net revenue: gross line totals (processing + completed, refunds already subtracted) x (1 - fee_pct).
 	 *
 	 * @param float $gross_line_totals Sum of line totals minus refunds.

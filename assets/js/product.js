@@ -43,6 +43,15 @@
 		var pct = calc.break_even_pct(tix, total);
 		var profit = Math.round(total * net - cost);
 		var money = (profit < 0 ? '-' : '') + cfg.currencySymbol + fmt(Math.abs(profit), 0);
+		if (!calc.can_break_even(tix, total)) {
+			$line.text(
+				cfg.i18n.warning
+					.replace('%1$s', fmt(tix, 0))
+					.replace('%2$s', fmt(total, 0))
+					.replace('%3$s', cfg.currencySymbol + fmt(Math.abs(profit), 0))
+			);
+			return;
+		}
 		$line.text(
 			cfg.i18n.line
 				.replace('%1$s', fmt(tix, 0))

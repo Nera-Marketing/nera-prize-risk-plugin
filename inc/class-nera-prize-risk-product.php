@@ -91,6 +91,16 @@ class Nera_Prize_Risk_Product {
 		$profit     = round( $total * $net - $total_cost );
 		$symbol     = html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' );
 
+		if ( ! Nera_Prize_Risk_Calc::can_break_even( $tix, $total ) ) {
+			return sprintf(
+				/* translators: 1: break-even tickets, 2: total tickets, 3: sold out loss with currency */
+				__( 'Can\'t break even: needs %1$s tickets, only %2$s exist. Sold out loss: %3$s.', 'nera-prize-risk' ),
+				number_format( $tix ),
+				number_format( $total ),
+				$symbol . number_format( abs( $profit ) )
+			);
+		}
+
 		return sprintf(
 			/* translators: 1: break-even tickets, 2: percent of total, 3: total tickets, 4: sold out profit with currency */
 			__( 'Break-even: %1$s tickets (%2$s%% of %3$s). Sold out profit: %4$s.', 'nera-prize-risk' ),
@@ -236,6 +246,8 @@ class Nera_Prize_Risk_Product {
 					'missing' => __( 'Set ticket price and total tickets to see break-even', 'nera-prize-risk' ),
 					/* translators: 1: break-even tickets, 2: percent of total, 3: total tickets, 4: sold out profit with currency */
 					'line'    => __( 'Break-even: %1$s tickets (%2$s%% of %3$s). Sold out profit: %4$s.', 'nera-prize-risk' ),
+					/* translators: 1: break-even tickets, 2: total tickets, 3: sold out loss with currency */
+					'warning' => __( 'Can\'t break even: needs %1$s tickets, only %2$s exist. Sold out loss: %3$s.', 'nera-prize-risk' ),
 				),
 			)
 		);

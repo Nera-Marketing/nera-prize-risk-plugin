@@ -27,6 +27,12 @@
 			}
 			return parseInt(breakEvenTix, 10) / parseInt(totalTickets, 10);
 		},
+		can_break_even: function (breakEvenTix, totalTickets) {
+			if (breakEvenTix === null || breakEvenTix === undefined || !(parseInt(totalTickets, 10) > 0)) {
+				return true;
+			}
+			return parseInt(breakEvenTix, 10) <= parseInt(totalTickets, 10);
+		},
 		revenue_net: function (grossLineTotals, feePct) {
 			return Number(grossLineTotals) * (1 - Number(feePct));
 		},
