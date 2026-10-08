@@ -46,9 +46,12 @@ class Nera_Prize_Risk_Data {
 		add_action( 'woocommerce_trash_order', array( __CLASS__, 'flush_order' ), 10, 1 );
 		add_action( 'woocommerce_untrash_order', array( __CLASS__, 'flush_order' ), 10, 1 );
 		add_action( 'woocommerce_update_product', array( __CLASS__, 'flush_product' ), 10, 1 );
-		// Line items edited in wp-admin (save items, Recalculate) without a status change. Not on
+		// Line items saved in wp-admin (save items, Recalculate) without a status change. Not on
 		// the generic order-update action: that fires on every order save (checkout, gateways, cron).
 		add_action( 'woocommerce_saved_order_items', array( __CLASS__, 'flush_order' ), 10, 1 );
+		// "Add item(s)" saves the existing lines first (above), then adds the new ones without a
+		// save, so their products are only covered by this action.
+		add_action( 'woocommerce_ajax_order_items_added', array( __CLASS__, 'flush_ajax_items' ), 10, 2 );
 		add_action( 'woocommerce_before_delete_order_item', array( __CLASS__, 'flush_order_item' ), 10, 1 );
 		// CPT storage: trashing from the posts list goes through wp_trash_post, not the order data store.
 		add_action( 'wp_trash_post', array( __CLASS__, 'flush_order_post' ), 10, 1 );
@@ -76,7 +79,7 @@ class Nera_Prize_Risk_Data {
 		if ( ! is_callable( array( $product, 'get_lty_regular_price' ) ) ) {
 			return (float) $product->get_price( 'edit' );
 		}
-		if ( is_callable( array( $product, 'is_on_sale' ) ) && $product->is_on_sale( 'edit' ) && is_callable( array( $product, 'get_lty_sale_price' ) ) ) {
+		if ( $product->is_on_sale( 'edit' ) && is_callable( array( $product, 'get_lty_sale_price' ) ) ) {
 			return (float) $product->get_lty_sale_price( 'edit' );
 		}
 		return (float) $product->get_lty_regular_price( 'edit' );
@@ -101,6 +104,18 @@ class Nera_Prize_Risk_Data {
 		if ( $order instanceof WC_Order_Refund && $order->get_parent_id() ) {
 			self::flush_order( $order->get_parent_id() );
 		}
+	}
+
+	/**
+	 * Lines added with "Add item(s)" on the edit-order screen: clear the order's products
+	 * (the order object passed in already holds the new lines).
+	 *
+	 * @param array             $items Added order items.
+	 * @param WC_Abstract_Order $order Order.
+	 * @return void
+	 */
+	public static function flush_ajax_items( $items, $order ) {
+		self::flush_order( $order );
 	}
 
 	/**
@@ -483,7 +498,7 @@ class Nera_Prize_Risk_Data {
 
 		$figures = array(
 			'gross'  => $gross,
-			'free'   => self::count_free_entries( $product_id, $lines ),
+			'free'   => self::count_free_entries( $lines ),
 			'window' => $window,
 		);
 		set_transient( $key, $figures, self::CACHE_TTL );
@@ -506,11 +521,10 @@ class Nera_Prize_Risk_Data {
 	 * that are tagged "Postal entry" OR have a £0 line total (the second layer; a 100% coupon also
 	 * gives a £0 line and counts here). Change the rule only here and in get_figures()' revenue skip.
 	 *
-	 * @param int   $product_id Product id.
-	 * @param array $lines      Lines from paid_status_lines() for the product's run.
+	 * @param array $lines Lines from paid_status_lines() for the product's run.
 	 * @return int
 	 */
-	public static function count_free_entries( $product_id, array $lines ) {
+	public static function count_free_entries( array $lines ) {
 		$free = 0;
 		foreach ( $lines as $line ) {
 			if ( ! self::is_postal_line( $line ) && abs( (float) $line['line_total'] ) >= 0.005 ) {
