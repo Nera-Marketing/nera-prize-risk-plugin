@@ -35,7 +35,7 @@ class Nera_Prize_Risk_Table {
 	}
 
 	/**
-	 * Money: currency symbol + amount (2 dp for prices and revenue, 0 dp for costs and positions).
+	 * Money: currency symbol + amount. Call sites pass 0 dp for costs, revenue, positions and margins; ticket prices keep 2 dp.
 	 *
 	 * @param float $amount   Amount.
 	 * @param int   $decimals Decimals.
@@ -92,17 +92,23 @@ class Nera_Prize_Risk_Table {
 	}
 
 	/**
-	 * End date in the site's date and time format.
+	 * End date in the site's date and/or time format.
 	 *
 	 * @param string $date LTY end date (site local time, Y-m-d H:i:s).
-	 * @return string
+	 * @param string $part both|date|time.
+	 * @return string Empty for the time part when there is no date.
 	 */
-	public static function closes( $date ) {
+	public static function closes( $date, $part = 'both' ) {
 		$ts = $date ? strtotime( $date ) : false;
 		if ( ! $ts ) {
-			return '—';
+			return 'time' === $part ? '' : '—';
 		}
-		return date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $ts );
+		$formats = array(
+			'date' => get_option( 'date_format' ),
+			'time' => get_option( 'time_format' ),
+			'both' => get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+		);
+		return date_i18n( isset( $formats[ $part ] ) ? $formats[ $part ] : $formats['both'], $ts );
 	}
 
 	/**
@@ -129,7 +135,7 @@ class Nera_Prize_Risk_Table {
 		}
 
 		foreach ( $rows as $row ) {
-			$sub = '<br><span class="description">%s</span>';
+			$sub = '<br><span class="description nera-prize-risk-sub">%s</span>';
 			printf( '<tr data-product-id="%d">', (int) $row['id'] );
 			printf(
 				'<td class="column-competition"><a href="%s">%s</a></td>',
@@ -137,8 +143,17 @@ class Nera_Prize_Risk_Table {
 				esc_html( $row['title'] )
 			);
 			printf( '<td class="column-category">%s</td>', esc_html( $row['category'] ) );
-			printf( '<td class="column-status">%s</td>', esc_html( Nera_Prize_Risk_Data::status_label( $row['status'] ) ) );
-			printf( '<td class="column-closes">%s</td>', esc_html( self::closes( $row['end_date'] ) ) );
+			printf(
+				'<td class="column-status"><span class="nera-prize-risk-status is-%s">%s</span></td>',
+				esc_attr( self::status_slug( $row['status'] ) ),
+				esc_html( Nera_Prize_Risk_Data::status_label( $row['status'] ) )
+			);
+			$closes_time = self::closes( $row['end_date'], 'time' );
+			printf(
+				'<td class="column-closes">%s%s</td>',
+				esc_html( self::closes( $row['end_date'], 'date' ) ),
+				'' === $closes_time ? '' : sprintf( $sub, esc_html( $closes_time ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup, escaped value.
+			);
 			printf( '<td class="column-prize_cost" data-value="%s">%s</td>', esc_attr( self::raw( $row['total_cost'] ) ), esc_html( self::money( $row['total_cost'], 0 ) ) );
 			printf( '<td class="column-ticket_price">%s</td>', esc_html( self::money( $row['ticket_price'] ) ) );
 			printf(
@@ -148,7 +163,7 @@ class Nera_Prize_Risk_Table {
 				esc_html( self::pct( $row['sell_through'] ) )
 			);
 			printf( '<td class="column-free">%s</td>', esc_html( number_format_i18n( $row['free'] ) ) );
-			printf( '<td class="column-revenue" data-value="%s">%s</td>', esc_attr( self::raw( $row['revenue_net'] ) ), esc_html( self::money( $row['revenue_net'] ) ) );
+			printf( '<td class="column-revenue" data-value="%s">%s</td>', esc_attr( self::raw( $row['revenue_net'] ) ), esc_html( self::money( $row['revenue_net'], 0 ) ) );
 			if ( null === $row['break_even_tix'] ) {
 				echo '<td class="column-break_even">—</td>';
 			} else {
@@ -168,6 +183,27 @@ class Nera_Prize_Risk_Table {
 		}
 
 		echo '</tbody></table></div>';
+	}
+
+	/**
+	 * Status badge slug (live, scheduled, ended, drawn, failed) from an LTY status.
+	 *
+	 * @param string $status LTY lottery status.
+	 * @return string
+	 */
+	public static function status_slug( $status ) {
+		$slug = array_search( $status, Nera_Prize_Risk_Export::status_keys(), true );
+		return false === $slug ? sanitize_html_class( (string) $status ) : $slug;
+	}
+
+	/**
+	 * Margin % text: "—" when revenue is 0 (null) or |margin %| > 999%, where the figure is noise.
+	 *
+	 * @param float|null $fraction Margin as a fraction of revenue.
+	 * @return string
+	 */
+	public static function margin_pct( $fraction ) {
+		return ( null === $fraction || abs( $fraction ) > 9.99 ) ? '—' : self::pct( $fraction );
 	}
 
 	/**
@@ -248,10 +284,10 @@ class Nera_Prize_Risk_Table {
 		$cells = array(
 			'comps'            => array( (string) $group['comps'], number_format_i18n( $group['comps'] ) ),
 			'prize_cost'       => array( self::raw( $group['prize_cost'] ), self::money( $group['prize_cost'], 0 ) ),
-			'revenue'          => array( self::raw( $group['revenue'] ), self::money( $group['revenue'] ) ),
+			'revenue'          => array( self::raw( $group['revenue'] ), self::money( $group['revenue'], 0 ) ),
 			'avg_sell_through' => array( null === $group['avg_sell_through'] ? '' : self::raw( $group['avg_sell_through'], 6 ), self::pct( $group['avg_sell_through'] ) ),
-			'margin'           => array( self::raw( $group['margin'] ), self::money( $group['margin'] ) ),
-			'margin_pct'       => array( null === $group['margin_pct'] ? '' : self::raw( $group['margin_pct'], 6 ), self::pct( $group['margin_pct'] ) ),
+			'margin'           => array( self::raw( $group['margin'] ), self::money( $group['margin'], 0 ) ),
+			'margin_pct'       => array( null === $group['margin_pct'] ? '' : self::raw( $group['margin_pct'], 6 ), self::margin_pct( $group['margin_pct'] ) ),
 		);
 		foreach ( $cells as $col => $cell ) {
 			printf( '<td class="column-%s" data-value="%s">%s</td>', esc_attr( $col ), esc_attr( $cell[0] ), esc_html( $cell[1] ) );
