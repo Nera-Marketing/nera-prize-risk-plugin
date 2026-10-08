@@ -230,6 +230,9 @@ class Nera_Prize_Risk_Admin {
 		wp_enqueue_style( 'nera-prize-risk-admin', NERA_PRIZE_RISK_PLUGIN_URL . 'assets/css/admin.css', array(), NERA_PRIZE_RISK_VERSION );
 		wp_register_script( 'nera-prize-risk-calc', NERA_PRIZE_RISK_PLUGIN_URL . 'assets/js/calc.js', array(), NERA_PRIZE_RISK_VERSION, true );
 		wp_enqueue_script( 'nera-prize-risk-calculator', NERA_PRIZE_RISK_PLUGIN_URL . 'assets/js/calculator.js', array( 'nera-prize-risk-calc' ), NERA_PRIZE_RISK_VERSION, true );
+		if ( $hook === self::$report_hook ) {
+			wp_enqueue_script( 'nera-prize-risk-sort', NERA_PRIZE_RISK_PLUGIN_URL . 'assets/js/sort.js', array(), NERA_PRIZE_RISK_VERSION, true );
+		}
 		wp_localize_script(
 			'nera-prize-risk-calculator',
 			'neraPrizeRiskCalculator',

@@ -30,6 +30,49 @@
 	text-align: right;
 	font-variant-numeric: tabular-nums;
 }
+/* Sortable headers (assets/js/sort.js): WP sorting indicators on a button instead of a link. */
+.nera-prize-risk-table thead th.sortable,
+.nera-prize-risk-table thead th.sorted {
+	padding: 0;
+}
+.nera-prize-risk-sort {
+	display: flex;
+	align-items: flex-start;
+	width: 100%;
+	margin: 0;
+	padding: 8px 6px;
+	border: 0;
+	border-radius: 2px;
+	background: none;
+	color: #2271b1;
+	font: inherit;
+	text-align: inherit;
+	white-space: normal; /* labels may wrap so the indicators don't push the table past its wrapper */
+	cursor: pointer;
+}
+.nera-prize-risk-sort:hover {
+	color: #135e96;
+}
+.nera-prize-risk-sort:focus {
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
+	outline: 2px solid transparent;
+}
+.nera-prize-risk-table thead th:first-child .nera-prize-risk-sort {
+	padding-left: 10px;
+}
+.nera-prize-risk-table thead th:last-child .nera-prize-risk-sort {
+	padding-right: 10px;
+}
+.nera-prize-risk-table thead .column-prize_cost .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-ticket_price .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-sold .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-free .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-revenue .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-break_even .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-position .nera-prize-risk-sort,
+.nera-prize-risk-rollup thead th:not(.column-label) .nera-prize-risk-sort {
+	justify-content: flex-end;
+}
 /* Break-even above total tickets (table cell, calculator output). */
 .nera-prize-risk-warning {
 	color: #d63638;
