@@ -140,6 +140,7 @@ class Nera_Prize_Risk_Postal {
 
 		$order->update_meta_data( self::META, $value );
 		$order->save();
+		// The only cache flush for a tag change: plain order saves don't flush.
 		if ( class_exists( 'Nera_Prize_Risk_Data' ) ) {
 			Nera_Prize_Risk_Data::flush_order( $order->get_id() );
 		}
