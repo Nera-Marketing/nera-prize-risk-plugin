@@ -5,7 +5,54 @@
 }
 .nera-prize-risk-table th,
 .nera-prize-risk-table td {
+	padding: 8px 6px;
 	white-space: nowrap;
+	vertical-align: top;
+}
+.nera-prize-risk-table th:first-child,
+.nera-prize-risk-table td:first-child {
+	padding-left: 10px;
+}
+.nera-prize-risk-table th:last-child,
+.nera-prize-risk-table td:last-child {
+	padding-right: 10px;
+}
+/* Numbers: right-aligned, tabular figures. */
+.nera-prize-risk-table .column-prize_cost,
+.nera-prize-risk-table .column-ticket_price,
+.nera-prize-risk-table .column-sold,
+.nera-prize-risk-table .column-free,
+.nera-prize-risk-table .column-revenue,
+.nera-prize-risk-table .column-break_even,
+.nera-prize-risk-table .column-position,
+.nera-prize-risk-rollup thead th:not(.column-label),
+.nera-prize-risk-rollup td:not(.column-label) {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+.nera-prize-risk-table .nera-prize-risk-sub {
+	color: #646970;
+	font-size: 12px;
+}
+/* Competition / group label stays in view while the table scrolls sideways. */
+.nera-prize-risk-table .column-competition,
+.nera-prize-risk-rollup .column-label {
+	position: sticky;
+	left: 0;
+	z-index: 1;
+	min-width: 120px;
+	max-width: 200px;
+	white-space: normal;
+	background-color: #fff;
+	box-shadow: inset -1px 0 0 #dcdcde;
+}
+.nera-prize-risk-table.striped > tbody > :nth-child(odd) > .column-competition,
+.nera-prize-risk-rollup.striped > tbody > :nth-child(odd) > .column-label {
+	background-color: #f6f7f7;
+}
+.nera-prize-risk-table tr.no-items td {
+	position: static;
+	white-space: normal;
 }
 .nera-prize-risk-pill {
 	display: inline-block;
@@ -26,6 +73,33 @@
 	background-color: #dba617;
 	color: #1d2327;
 }
+/* Status: small neutral badge, quieter than the Risk pill. */
+.nera-prize-risk-status {
+	display: inline-block;
+	padding: 0 6px;
+	border: 1px solid #dcdcde;
+	border-radius: 2px;
+	background-color: #f6f7f7;
+	color: #50575e;
+	font-size: 12px;
+	line-height: 1.7;
+}
+.nera-prize-risk-status.is-live {
+	border-color: #c5d9ed;
+	background-color: #f0f6fc;
+	color: #0a4b78;
+}
+.nera-prize-risk-status.is-scheduled {
+	border-color: #dcdcde;
+	background-color: #fff;
+	color: #2c3338;
+}
+.nera-prize-risk-status.is-ended,
+.nera-prize-risk-status.is-drawn,
+.nera-prize-risk-status.is-failed {
+	background-color: #f0f0f1;
+	color: #50575e;
+}
 .nera-prize-risk-filters {
 	display: flex;
 	flex-wrap: wrap;
@@ -43,9 +117,31 @@
 	float: none;
 	margin: 0 0 8px;
 }
+.nera-prize-risk-table-title,
+.nera-prize-risk-rollup-title {
+	margin: 24px 0 8px;
+}
 .nera-prize-risk-rollup tfoot th,
 .nera-prize-risk-rollup tfoot td {
 	font-weight: 600;
+}
+@media screen and (max-width: 782px) {
+	.nera-prize-risk-filters {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.nera-prize-risk-filters select,
+	.nera-prize-risk-filters .button {
+		width: 100%;
+		max-width: none;
+		margin: 0;
+	}
+	.nera-prize-risk-filters .button {
+		text-align: center;
+	}
+	.nera-prize-risk-filters .nera-prize-risk-export {
+		margin-left: 0;
+	}
 }
 /* Calculator modal. */
 .nera-prize-risk-dialog {
