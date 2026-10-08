@@ -1,6 +1,6 @@
 <?php
 /**
- * Prize Risk screen: calculator box on top, competitions table below it.
+ * Prize Risk screen: competitions table under the title; the calculator opens in a modal from the title button.
  *
  * Variables from Nera_Prize_Risk_Admin::render_report(): $fee_pct (float), $settings_url (string), $all_rows (array[]),
  * $rows (array[], filtered), $filters (array), $options (array), $export_url (string), $view (list|items),
@@ -11,61 +11,29 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$nera_prize_risk_inputs = array(
-	'prize_cost'    => __( 'Prize cost', 'nera-prize-risk' ),
-	'other_costs'   => __( 'Other costs', 'nera-prize-risk' ),
-	'ticket_price'  => __( 'Ticket price', 'nera-prize-risk' ),
-	'total_tickets' => __( 'Total tickets', 'nera-prize-risk' ),
-	'sell_through'  => __( 'Expected sell-through %', 'nera-prize-risk' ),
-);
-
 $nera_prize_risk_filter_labels = array(
 	'month'  => array( __( 'Month', 'nera-prize-risk' ), __( 'All months', 'nera-prize-risk' ) ),
 	'cat'    => array( __( 'Category', 'nera-prize-risk' ), __( 'All categories', 'nera-prize-risk' ) ),
 	'status' => array( __( 'Status', 'nera-prize-risk' ), __( 'All statuses', 'nera-prize-risk' ) ),
 );
-
-$nera_prize_risk_outputs = array(
-	'break_even' => __( 'Break-even', 'nera-prize-risk' ),
-	'expected'   => __( 'Result at expected sell-through', 'nera-prize-risk' ),
-	'sold_out'   => __( 'Result if sold out', 'nera-prize-risk' ),
-	'nothing'    => __( 'Loss if nothing sells', 'nera-prize-risk' ),
-);
 ?>
 <div class="wrap nera-prize-risk">
-	<h1><?php esc_html_e( 'Prize Risk', 'nera-prize-risk' ); ?></h1>
+	<h1 class="wp-heading-inline"><?php esc_html_e( 'Prize Risk', 'nera-prize-risk' ); ?></h1>
+	<a href="#" class="page-title-action" id="nera-prize-risk-calc-open" role="button" aria-haspopup="dialog" aria-controls="nera-prize-risk-calc-dialog"><?php esc_html_e( 'Calculator', 'nera-prize-risk' ); ?></a>
+	<hr class="wp-header-end">
 
-	<div class="card nera-prize-risk-calc" id="nera-prize-risk-calc">
-		<h2 class="title"><?php esc_html_e( 'Calculator', 'nera-prize-risk' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Try out a competition before you set it up. Nothing here is saved.', 'nera-prize-risk' ); ?></p>
-
-		<table class="form-table" role="presentation">
-			<?php foreach ( $nera_prize_risk_inputs as $nera_prize_risk_key => $nera_prize_risk_label ) : ?>
-				<tr>
-					<th scope="row"><label for="nera-prize-risk-calc-<?php echo esc_attr( $nera_prize_risk_key ); ?>"><?php echo esc_html( $nera_prize_risk_label ); ?></label></th>
-					<td><input type="number" min="0" step="any" inputmode="decimal" class="regular-text" id="nera-prize-risk-calc-<?php echo esc_attr( $nera_prize_risk_key ); ?>" data-field="<?php echo esc_attr( $nera_prize_risk_key ); ?>" autocomplete="off" /></td>
-				</tr>
-			<?php endforeach; ?>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Payment fee', 'nera-prize-risk' ); ?></th>
-				<td>
-					<strong id="nera-prize-risk-calc-fee"><?php echo esc_html( wc_format_localized_decimal( (string) ( 0 + $fee_pct ) ) . '%' ); ?></strong>
-					<a href="<?php echo esc_url( $settings_url ); ?>"><?php esc_html_e( 'Change in Settings', 'nera-prize-risk' ); ?></a>
-				</td>
-			</tr>
-		</table>
-
-		<table class="widefat striped nera-prize-risk-calc-results" aria-live="polite">
-			<tbody>
-				<?php foreach ( $nera_prize_risk_outputs as $nera_prize_risk_key => $nera_prize_risk_label ) : ?>
-					<tr>
-						<th scope="row"><?php echo esc_html( $nera_prize_risk_label ); ?></th>
-						<td id="nera-prize-risk-calc-out-<?php echo esc_attr( $nera_prize_risk_key ); ?>">—</td>
-					</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
-	</div>
+	<dialog id="nera-prize-risk-calc-dialog" class="nera-prize-risk-dialog" aria-labelledby="nera-prize-risk-calc-title">
+		<div class="nera-prize-risk-dialog-header">
+			<h2 id="nera-prize-risk-calc-title"><?php esc_html_e( 'Calculator', 'nera-prize-risk' ); ?></h2>
+			<button type="button" class="button-link nera-prize-risk-dialog-close" id="nera-prize-risk-calc-close">
+				<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+				<span class="screen-reader-text"><?php esc_html_e( 'Close calculator', 'nera-prize-risk' ); ?></span>
+			</button>
+		</div>
+		<div class="nera-prize-risk-dialog-body">
+			<?php include NERA_PRIZE_RISK_PLUGIN_DIR . 'templates/calculator-form.php'; ?>
+		</div>
+	</dialog>
 
 	<h2 class="nera-prize-risk-table-title"><?php esc_html_e( 'Competitions', 'nera-prize-risk' ); ?></h2>
 
