@@ -139,15 +139,16 @@ class Nera_Prize_Risk_Table {
 			printf( '<td class="column-category">%s</td>', esc_html( $row['category'] ) );
 			printf( '<td class="column-status">%s</td>', esc_html( Nera_Prize_Risk_Data::status_label( $row['status'] ) ) );
 			printf( '<td class="column-closes">%s</td>', esc_html( self::closes( $row['end_date'] ) ) );
-			printf( '<td class="column-prize_cost">%s</td>', esc_html( self::money( $row['total_cost'], 0 ) ) );
+			printf( '<td class="column-prize_cost" data-value="%s">%s</td>', esc_attr( self::raw( $row['total_cost'] ) ), esc_html( self::money( $row['total_cost'], 0 ) ) );
 			printf( '<td class="column-ticket_price">%s</td>', esc_html( self::money( $row['ticket_price'] ) ) );
 			printf(
-				'<td class="column-sold">%s' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
+				'<td class="column-sold" data-value="%s">%s' . $sub . '</td>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup.
+				esc_attr( null === $row['sell_through'] ? '' : self::raw( $row['sell_through'], 6 ) ),
 				esc_html( number_format_i18n( $row['paid'] ) . ' / ' . number_format_i18n( $row['max'] ) ),
 				esc_html( self::pct( $row['sell_through'] ) )
 			);
 			printf( '<td class="column-free">%s</td>', esc_html( number_format_i18n( $row['free'] ) ) );
-			printf( '<td class="column-revenue">%s</td>', esc_html( self::money( $row['revenue_net'] ) ) );
+			printf( '<td class="column-revenue" data-value="%s">%s</td>', esc_attr( self::raw( $row['revenue_net'] ) ), esc_html( self::money( $row['revenue_net'] ) ) );
 			if ( null === $row['break_even_tix'] ) {
 				echo '<td class="column-break_even">—</td>';
 			} else {
@@ -157,7 +158,7 @@ class Nera_Prize_Risk_Table {
 					esc_html( self::pct( $row['break_even_pct'] ) )
 				);
 			}
-			printf( '<td class="column-position">%s</td>', esc_html( self::position_text( $row['position'] ) ) );
+			printf( '<td class="column-position" data-value="%s">%s</td>', esc_attr( self::raw( $row['position'] ) ), esc_html( self::position_text( $row['position'] ) ) );
 			printf(
 				'<td class="column-risk"><span class="nera-prize-risk-pill is-%s">%s</span></td>',
 				esc_attr( str_replace( '_', '-', $row['risk'] ) ),
@@ -167,5 +168,93 @@ class Nera_Prize_Risk_Table {
 		}
 
 		echo '</tbody></table></div>';
+	}
+
+	/**
+	 * Raw number for data-value attributes (dot decimal, no separators).
+	 *
+	 * @param float $value    Number.
+	 * @param int   $decimals Decimals.
+	 * @return string
+	 */
+	public static function raw( $value, $decimals = 2 ) {
+		$out = number_format( (float) $value, $decimals, '.', '' );
+		return (float) $out === 0.0 ? number_format( 0, $decimals, '.', '' ) : $out;
+	}
+
+	/**
+	 * Rollup columns (task.md §4b), after the group label column.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function rollup_columns() {
+		return array(
+			'comps'            => __( 'Comps', 'nera-prize-risk' ),
+			'prize_cost'       => __( 'Prize cost', 'nera-prize-risk' ),
+			'revenue'          => __( 'Revenue (net)', 'nera-prize-risk' ),
+			'avg_sell_through' => __( 'Avg sell-through', 'nera-prize-risk' ),
+			'margin'           => __( 'Margin', 'nera-prize-risk' ),
+			'margin_pct'       => __( 'Margin %', 'nera-prize-risk' ),
+		);
+	}
+
+	/**
+	 * Output one rollup table (by category, by month, or the Items view by title).
+	 *
+	 * @param array  $rollup From Nera_Prize_Risk_Data::rollup().
+	 * @param string $key    category|month|title (table id suffix).
+	 * @param string $label  Heading of the group column.
+	 * @return void
+	 */
+	public static function render_rollup( $rollup, $key, $label ) {
+		$columns = self::rollup_columns();
+		printf(
+			'<div class="nera-prize-risk-table-wrap"><table class="widefat striped nera-prize-risk-table nera-prize-risk-rollup" id="nera-prize-risk-rollup-%s"><thead><tr><th scope="col" class="column-label">%s</th>',
+			esc_attr( $key ),
+			esc_html( $label )
+		);
+		foreach ( $columns as $col => $heading ) {
+			$title = 'avg_sell_through' === $col ? __( "Mean of each competition's sell-through", 'nera-prize-risk' ) : '';
+			printf(
+				'<th scope="col" class="column-%s"%s>%s</th>',
+				esc_attr( $col ),
+				$title ? ' title="' . esc_attr( $title ) . '"' : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+				esc_html( $heading )
+			);
+		}
+		echo '</tr></thead><tbody>';
+
+		if ( empty( $rollup['groups'] ) ) {
+			printf( '<tr class="no-items"><td colspan="%d">%s</td></tr>', count( $columns ) + 1, esc_html__( 'No competitions to sum.', 'nera-prize-risk' ) );
+		}
+		foreach ( $rollup['groups'] as $group ) {
+			printf( '<tr data-key="%s"><th scope="row" class="column-label">%s</th>', esc_attr( $group['key'] ), esc_html( $group['label'] ) );
+			self::rollup_cells( $group );
+			echo '</tr>';
+		}
+
+		printf( '</tbody><tfoot><tr class="nera-prize-risk-total"><th scope="row" class="column-label">%s</th>', esc_html__( 'Total', 'nera-prize-risk' ) );
+		self::rollup_cells( $rollup['total'] );
+		echo '</tr></tfoot></table></div>';
+	}
+
+	/**
+	 * Figure cells of one rollup row.
+	 *
+	 * @param array $group Rollup group.
+	 * @return void
+	 */
+	private static function rollup_cells( $group ) {
+		$cells = array(
+			'comps'            => array( (string) $group['comps'], number_format_i18n( $group['comps'] ) ),
+			'prize_cost'       => array( self::raw( $group['prize_cost'] ), self::money( $group['prize_cost'], 0 ) ),
+			'revenue'          => array( self::raw( $group['revenue'] ), self::money( $group['revenue'] ) ),
+			'avg_sell_through' => array( null === $group['avg_sell_through'] ? '' : self::raw( $group['avg_sell_through'], 6 ), self::pct( $group['avg_sell_through'] ) ),
+			'margin'           => array( self::raw( $group['margin'] ), self::money( $group['margin'] ) ),
+			'margin_pct'       => array( null === $group['margin_pct'] ? '' : self::raw( $group['margin_pct'], 6 ), self::pct( $group['margin_pct'] ) ),
+		);
+		foreach ( $cells as $col => $cell ) {
+			printf( '<td class="column-%s" data-value="%s">%s</td>', esc_attr( $col ), esc_attr( $cell[0] ), esc_html( $cell[1] ) );
+		}
 	}
 }

@@ -229,6 +229,106 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
+	 * Group rows into a rollup (task.md §4b/§4c): Comps, Prize cost, Revenue (net), Avg sell-through, Margin, Margin %.
+	 *
+	 * Avg sell-through is the mean of each row's sell-through (rows without a ticket total are left out of the mean).
+	 * Margin is the sum of the rows' positions; Margin % = margin / revenue, null when revenue is 0.
+	 * Runs on the admin screen only (month grouping uses Nera_Prize_Risk_Export::row_month()).
+	 *
+	 * @param array[] $rows Rows (already filtered).
+	 * @param string  $key  category|month|title.
+	 * @return array{groups:array[],total:array} Groups sorted by label (months by date), plus a totals group.
+	 */
+	public static function rollup( $rows, $key ) {
+		$groups = array();
+		$total  = self::rollup_group( '', '' );
+		foreach ( $rows as $row ) {
+			if ( 'month' === $key ) {
+				$id    = Nera_Prize_Risk_Export::row_month( $row );
+				$label = '' !== $id ? date_i18n( 'F Y', strtotime( $id . '-01 00:00:00' ) ) : __( 'No close date', 'nera-prize-risk' );
+			} elseif ( 'title' === $key ) {
+				$id    = (string) $row['title'];
+				$label = $id;
+			} else {
+				$id    = (string) (int) $row['category_id'];
+				$label = '' !== $row['category'] ? $row['category'] : __( 'Uncategorised', 'nera-prize-risk' );
+			}
+			if ( ! isset( $groups[ $id ] ) ) {
+				$groups[ $id ] = self::rollup_group( $id, $label );
+			}
+			self::rollup_add( $groups[ $id ], $row );
+			self::rollup_add( $total, $row );
+		}
+
+		if ( 'month' === $key ) {
+			ksort( $groups, SORT_STRING );
+		} else {
+			uasort(
+				$groups,
+				static function ( $a, $b ) {
+					return strnatcasecmp( $a['label'], $b['label'] );
+				}
+			);
+		}
+
+		return array(
+			'groups' => array_map( array( __CLASS__, 'rollup_finish' ), array_values( $groups ) ),
+			'total'  => self::rollup_finish( $total ),
+		);
+	}
+
+	/**
+	 * Empty rollup group.
+	 *
+	 * @param string $id    Group key.
+	 * @param string $label Group label.
+	 * @return array
+	 */
+	private static function rollup_group( $id, $label ) {
+		return array(
+			'key'        => $id,
+			'label'      => $label,
+			'comps'      => 0,
+			'prize_cost' => 0.0,
+			'revenue'    => 0.0,
+			'margin'     => 0.0,
+			'st_sum'     => 0.0,
+			'st_n'       => 0,
+		);
+	}
+
+	/**
+	 * Add a row to a rollup group.
+	 *
+	 * @param array $group Group (by reference).
+	 * @param array $row   Report row.
+	 * @return void
+	 */
+	private static function rollup_add( &$group, $row ) {
+		++$group['comps'];
+		$group['prize_cost'] += (float) $row['total_cost'];
+		$group['revenue']    += (float) $row['revenue_net'];
+		$group['margin']     += (float) $row['position'];
+		if ( null !== $row['sell_through'] ) {
+			$group['st_sum'] += (float) $row['sell_through'];
+			++$group['st_n'];
+		}
+	}
+
+	/**
+	 * Derived rollup figures: avg sell-through and margin %.
+	 *
+	 * @param array $group Group.
+	 * @return array
+	 */
+	private static function rollup_finish( $group ) {
+		$group['avg_sell_through'] = $group['st_n'] > 0 ? $group['st_sum'] / $group['st_n'] : null;
+		$group['margin_pct']       = 0.0 !== round( $group['revenue'], 2 ) ? $group['margin'] / $group['revenue'] : null;
+		unset( $group['st_sum'], $group['st_n'] );
+		return $group;
+	}
+
+	/**
 	 * Primary category: Yoast's primary term when set and still assigned, else the first product_cat term.
 	 *
 	 * @param int $product_id Product id.

@@ -146,6 +146,12 @@ class Nera_Prize_Risk_Admin {
 		$options      = Nera_Prize_Risk_Export::filter_options( $all_rows );
 		$rows         = Nera_Prize_Risk_Export::filter_rows( $all_rows, $filters );
 		$export_url   = Nera_Prize_Risk_Export::export_url( $filters );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only view toggle.
+		$view         = ( isset( $_GET['view'] ) && 'items' === $_GET['view'] ) ? 'items' : 'list';
+		$view_urls    = array(
+			'list'  => add_query_arg( array_filter( array_merge( array( 'page' => self::PAGE_SLUG ), $filters ) ), admin_url( 'admin.php' ) ),
+			'items' => add_query_arg( array_filter( array_merge( array( 'page' => self::PAGE_SLUG ), $filters, array( 'view' => 'items' ) ) ), admin_url( 'admin.php' ) ),
+		);
 		include NERA_PRIZE_RISK_PLUGIN_DIR . 'templates/admin-report.php';
 	}
 
