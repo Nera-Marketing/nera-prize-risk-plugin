@@ -1,6 +1,6 @@
 <?php
 /**
- * Prize Risk admin menu: report screen (calculator box on top) and the Payment fee % setting.
+ * Prize Risk admin menu: report screen (calculator in a modal), Calculator page and the Payment fee % setting.
  *
  * Admin only: loaded on `nera_prize_risk_loaded` when is_admin(). Nothing hooks the front end.
  *
@@ -16,6 +16,7 @@ class Nera_Prize_Risk_Admin {
 
 	const CAPABILITY     = 'manage_woocommerce';
 	const PAGE_SLUG      = 'nera-prize-risk';
+	const CALC_SLUG      = 'nera-prize-risk-calculator';
 	const SETTINGS_SLUG  = 'nera-prize-risk-settings';
 	const SETTINGS_GROUP = 'nera_prize_risk_settings';
 	const OPTION_FEE_PCT = 'nera_prize_risk_fee_pct';
@@ -26,6 +27,13 @@ class Nera_Prize_Risk_Admin {
 	 * @var string
 	 */
 	private static $report_hook = '';
+
+	/**
+	 * Calculator page hook suffix.
+	 *
+	 * @var string
+	 */
+	private static $calc_hook = '';
 
 	/**
 	 * Hook in.
@@ -63,6 +71,15 @@ class Nera_Prize_Risk_Admin {
 			array( __CLASS__, 'render_report' ),
 			'dashicons-shield',
 			'56.1'
+		);
+
+		self::$calc_hook = (string) add_submenu_page(
+			self::PAGE_SLUG,
+			__( 'Calculator', 'nera-prize-risk' ),
+			__( 'Calculator', 'nera-prize-risk' ),
+			self::CAPABILITY,
+			self::CALC_SLUG,
+			array( __CLASS__, 'render_calculator' )
 		);
 
 		add_submenu_page(
@@ -156,6 +173,20 @@ class Nera_Prize_Risk_Admin {
 	}
 
 	/**
+	 * Calculator page: the same form partial and JS as the report-screen modal, inline.
+	 *
+	 * @return void
+	 */
+	public static function render_calculator() {
+		if ( ! current_user_can( self::CAPABILITY ) ) {
+			return;
+		}
+		$fee_pct      = self::fee_pct();
+		$settings_url = admin_url( 'admin.php?page=' . self::SETTINGS_SLUG );
+		include NERA_PRIZE_RISK_PLUGIN_DIR . 'templates/admin-calculator.php';
+	}
+
+	/**
 	 * Settings screen.
 	 *
 	 * @return void
@@ -186,13 +217,13 @@ class Nera_Prize_Risk_Admin {
 	}
 
 	/**
-	 * Calculator scripts and table styles on the report screen only.
+	 * Calculator scripts and table styles on the report screen and the Calculator page only.
 	 *
 	 * @param string $hook Admin page hook.
 	 * @return void
 	 */
 	public static function enqueue( $hook ) {
-		if ( '' === self::$report_hook || $hook !== self::$report_hook ) {
+		if ( ! in_array( $hook, array_filter( array( self::$report_hook, self::$calc_hook ) ), true ) ) {
 			return;
 		}
 
