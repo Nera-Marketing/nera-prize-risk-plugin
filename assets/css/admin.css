@@ -222,3 +222,10 @@
 .nera-prize-risk-calc-fee {
 	margin: 16px 0 12px;
 }
+/* "Model this" row action: always shown, 24px tap target. */
+.nera-prize-risk-table .row-actions {
+	padding-top: 0;
+}
+.nera-prize-risk-table .nera-prize-risk-model {
+	min-height: 24px;
+}

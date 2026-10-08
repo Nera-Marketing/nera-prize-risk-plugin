@@ -185,10 +185,9 @@ class Nera_Prize_Risk_Data {
 		$id      = $product->get_id();
 		$figures = self::get_figures( $id );
 
-		$total_cost = Nera_Prize_Risk_Calc::total_cost(
-			(float) $product->get_meta( '_nera_prize_cost', true, 'edit' ),
-			(float) $product->get_meta( '_nera_other_costs', true, 'edit' )
-		);
+		$prize_cost  = (float) $product->get_meta( '_nera_prize_cost', true, 'edit' );
+		$other_costs = (float) $product->get_meta( '_nera_other_costs', true, 'edit' );
+		$total_cost  = Nera_Prize_Risk_Calc::total_cost( $prize_cost, $other_costs );
 		$price      = (float) $product->get_price( 'edit' );
 		$max        = (int) $product->get_lty_maximum_tickets();
 		$free       = (int) $figures['free'];
@@ -214,6 +213,8 @@ class Nera_Prize_Risk_Data {
 			'category_id'    => $category ? (int) $category->term_id : 0,
 			'status'         => (string) $product->get_lty_lottery_status(),
 			'end_date'       => (string) $product->get_lty_end_date(),
+			'prize_cost'     => $prize_cost,
+			'other_costs'    => $other_costs,
 			'total_cost'     => $total_cost,
 			'ticket_price'   => $price,
 			'max'            => $max,
