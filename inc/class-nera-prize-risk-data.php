@@ -46,12 +46,12 @@ class Nera_Prize_Risk_Data {
 		add_action( 'woocommerce_trash_order', array( __CLASS__, 'flush_order' ), 10, 1 );
 		add_action( 'woocommerce_untrash_order', array( __CLASS__, 'flush_order' ), 10, 1 );
 		add_action( 'woocommerce_update_product', array( __CLASS__, 'flush_product' ), 10, 1 );
-		// Line items saved in wp-admin (save items, Recalculate) without a status change. Not on
-		// the generic order-update action: that fires on every order save (checkout, gateways, cron).
-		add_action( 'woocommerce_saved_order_items', array( __CLASS__, 'flush_order' ), 10, 1 );
-		// "Add item(s)" saves the existing lines first (above), then adds the new ones without a
-		// save, so their products are only covered by this action.
-		add_action( 'woocommerce_ajax_order_items_added', array( __CLASS__, 'flush_ajax_items' ), 10, 2 );
+		// Any order line created or saved with a changed total, subtotal, quantity or product (Add
+		// item(s), save items, Recalculate, coupons, REST, code). Not on the generic order-update
+		// action: that fires on every order save (checkout, gateways, cron). Detected before the save,
+		// flushed after it, so a report load during the save can't cache the old values.
+		add_action( 'woocommerce_before_order_item_object_save', array( __CLASS__, 'mark_item_change' ), 10, 1 );
+		add_action( 'woocommerce_after_order_item_object_save', array( __CLASS__, 'flush_item_change' ), 10, 1 );
 		add_action( 'woocommerce_before_delete_order_item', array( __CLASS__, 'flush_order_item' ), 10, 1 );
 		// CPT storage: trashing from the posts list goes through wp_trash_post, not the order data store.
 		add_action( 'wp_trash_post', array( __CLASS__, 'flush_order_post' ), 10, 1 );
@@ -107,15 +107,48 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
-	 * Lines added with "Add item(s)" on the edit-order screen: clear the order's products
-	 * (the order object passed in already holds the new lines).
+	 * Products to clear once the order line being saved is stored, keyed by spl_object_id().
 	 *
-	 * @param array             $items Added order items.
-	 * @param WC_Abstract_Order $order Order.
+	 * @var array<int,int[]>
+	 */
+	private static $item_changes = array();
+
+	/**
+	 * Order line about to be saved: remember its products (old and new) when it is new or its
+	 * total, subtotal, quantity or product changed.
+	 *
+	 * @param WC_Order_Item $item Order item.
 	 * @return void
 	 */
-	public static function flush_ajax_items( $items, $order ) {
-		self::flush_order( $order );
+	public static function mark_item_change( $item ) {
+		if ( ! $item instanceof WC_Order_Item_Product ) {
+			return;
+		}
+		$changed = array_intersect_key( $item->get_changes(), array_flip( array( 'total', 'subtotal', 'quantity', 'product_id', 'variation_id' ) ) );
+		if ( $item->get_id() && ! $changed ) {
+			return;
+		}
+		$data = $item->get_data();
+		$ids  = array( (int) $item->get_product_id( 'edit' ), isset( $data['product_id'] ) ? (int) $data['product_id'] : 0 );
+
+		self::$item_changes[ spl_object_id( $item ) ] = array_unique( array_filter( $ids ) );
+	}
+
+	/**
+	 * Order line saved: clear the products remembered by mark_item_change().
+	 *
+	 * @param WC_Order_Item $item Order item.
+	 * @return void
+	 */
+	public static function flush_item_change( $item ) {
+		$key = spl_object_id( $item );
+		if ( ! isset( self::$item_changes[ $key ] ) ) {
+			return;
+		}
+		foreach ( self::$item_changes[ $key ] as $product_id ) {
+			self::flush_product( $product_id );
+		}
+		unset( self::$item_changes[ $key ] );
 	}
 
 	/**
