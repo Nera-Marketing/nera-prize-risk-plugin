@@ -141,6 +141,7 @@ class Nera_Prize_Risk_Admin {
 		}
 		$fee_pct      = self::fee_pct();
 		$settings_url = admin_url( 'admin.php?page=' . self::SETTINGS_SLUG );
+		$rows         = Nera_Prize_Risk_Data::get_rows();
 		include NERA_PRIZE_RISK_PLUGIN_DIR . 'templates/admin-report.php';
 	}
 
@@ -175,7 +176,7 @@ class Nera_Prize_Risk_Admin {
 	}
 
 	/**
-	 * Calculator scripts on the report screen only.
+	 * Calculator scripts and table styles on the report screen only.
 	 *
 	 * @param string $hook Admin page hook.
 	 * @return void
@@ -185,6 +186,7 @@ class Nera_Prize_Risk_Admin {
 			return;
 		}
 
+		wp_enqueue_style( 'nera-prize-risk-admin', NERA_PRIZE_RISK_PLUGIN_URL . 'assets/css/admin.css', array(), NERA_PRIZE_RISK_VERSION );
 		wp_register_script( 'nera-prize-risk-calc', NERA_PRIZE_RISK_PLUGIN_URL . 'assets/js/calc.js', array(), NERA_PRIZE_RISK_VERSION, true );
 		wp_enqueue_script( 'nera-prize-risk-calculator', NERA_PRIZE_RISK_PLUGIN_URL . 'assets/js/calculator.js', array( 'nera-prize-risk-calc' ), NERA_PRIZE_RISK_VERSION, true );
 		wp_localize_script(

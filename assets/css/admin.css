@@ -1,0 +1,28 @@
+/* Prize Risk report screen (wp-admin only). */
+.nera-prize-risk-table-wrap {
+	max-width: 100%;
+	overflow-x: auto;
+}
+.nera-prize-risk-table th,
+.nera-prize-risk-table td {
+	white-space: nowrap;
+}
+.nera-prize-risk-pill {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-weight: 600;
+	line-height: 1.6;
+}
+.nera-prize-risk-pill.is-exposed {
+	background-color: #d63638;
+	color: #fff;
+}
+.nera-prize-risk-pill.is-covered {
+	background-color: #00a32a;
+	color: #fff;
+}
+.nera-prize-risk-pill.is-sold-out {
+	background-color: #dba617;
+	color: #1d2327;
+}

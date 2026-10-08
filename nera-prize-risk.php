@@ -159,7 +159,18 @@ add_action(
 );
 
 /**
- * Admin: Prize Risk menu (report screen with calculator, settings).
+ * Report data and its cache invalidation (every request: orders change at checkout, by cron and over REST).
+ */
+add_action(
+	'nera_prize_risk_loaded',
+	static function () {
+		require_once NERA_PRIZE_RISK_PLUGIN_DIR . 'inc/class-nera-prize-risk-data.php';
+		Nera_Prize_Risk_Data::init();
+	}
+);
+
+/**
+ * Admin: Prize Risk menu (report screen with calculator and competitions table, settings).
  */
 add_action(
 	'nera_prize_risk_loaded',
@@ -168,6 +179,7 @@ add_action(
 			return;
 		}
 		require_once NERA_PRIZE_RISK_PLUGIN_DIR . 'inc/class-nera-prize-risk-admin.php';
+		require_once NERA_PRIZE_RISK_PLUGIN_DIR . 'inc/class-nera-prize-risk-table.php';
 		Nera_Prize_Risk_Admin::init();
 	}
 );
