@@ -1,6 +1,8 @@
 /**
- * Prize Risk screen calculator: recalculates on every input, saves nothing, sends no requests.
+ * Prize Risk calculator: recalculates on every input, saves nothing, sends no requests.
  * Uses NeraPrizeRiskCalc (assets/js/calc.js). Config in window.neraPrizeRiskCalculator.
+ * On the Prize Risk screen the form sits in a modal <dialog> opened by #nera-prize-risk-calc-open.
+ * window.NeraPrizeRiskCalculator.open(values) fills the inputs, recalculates and opens the modal.
  */
 (function () {
 	'use strict';
@@ -85,4 +87,55 @@
 
 	box.addEventListener('input', update);
 	update();
+
+	// Modal: open from the title button; close with the Close button, Esc (native) or a backdrop click.
+	var dialog = document.getElementById('nera-prize-risk-calc-dialog');
+	var trigger = document.getElementById('nera-prize-risk-calc-open');
+
+	function open(values) {
+		if (values) {
+			Object.keys(values).forEach(function (name) {
+				var el = box.querySelector('[data-field="' + name + '"]');
+				if (el) {
+					el.value = values[name] === null || values[name] === undefined ? '' : values[name];
+				}
+			});
+			update();
+		}
+		if (dialog && !dialog.open) {
+			dialog.showModal();
+		}
+	}
+
+	if (dialog) {
+		if (trigger) {
+			trigger.addEventListener('click', function (e) {
+				e.preventDefault();
+				open();
+			});
+		}
+		var closeBtn = document.getElementById('nera-prize-risk-calc-close');
+		if (closeBtn) {
+			closeBtn.addEventListener('click', function () {
+				dialog.close();
+			});
+		}
+		// A click on the backdrop targets the dialog element itself, outside its box.
+		dialog.addEventListener('click', function (e) {
+			if (e.target !== dialog) {
+				return;
+			}
+			var r = dialog.getBoundingClientRect();
+			if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
+				dialog.close();
+			}
+		});
+		dialog.addEventListener('close', function () {
+			if (trigger) {
+				trigger.focus();
+			}
+		});
+	}
+
+	window.NeraPrizeRiskCalculator = { open: open, update: update };
 })();
