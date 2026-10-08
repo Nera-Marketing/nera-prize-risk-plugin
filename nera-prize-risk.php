@@ -143,3 +143,17 @@ function nera_prize_risk_boot() {
 	do_action( 'nera_prize_risk_loaded' );
 }
 add_action( 'plugins_loaded', 'nera_prize_risk_boot', 20 );
+
+/**
+ * Admin: Prize risk tab on the product edit screen.
+ */
+add_action(
+	'nera_prize_risk_loaded',
+	static function () {
+		if ( ! is_admin() ) {
+			return;
+		}
+		require_once NERA_PRIZE_RISK_PLUGIN_DIR . 'inc/class-nera-prize-risk-product.php';
+		Nera_Prize_Risk_Product::init();
+	}
+);
