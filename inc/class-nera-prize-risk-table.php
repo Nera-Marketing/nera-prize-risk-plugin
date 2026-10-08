@@ -108,10 +108,11 @@ class Nera_Prize_Risk_Table {
 	/**
 	 * Output the table.
 	 *
-	 * @param array[] $rows Rows from Nera_Prize_Risk_Data::get_rows().
+	 * @param array[] $rows          Rows from Nera_Prize_Risk_Data::get_rows() (filtered).
+	 * @param string  $empty_message Message when there are no rows (default: nothing costed yet).
 	 * @return void
 	 */
-	public static function render( $rows ) {
+	public static function render( $rows, $empty_message = '' ) {
 		$columns = self::columns();
 		echo '<div class="nera-prize-risk-table-wrap"><table class="widefat striped nera-prize-risk-table" id="nera-prize-risk-table"><thead><tr>';
 		foreach ( $columns as $key => $label ) {
@@ -123,7 +124,7 @@ class Nera_Prize_Risk_Table {
 			printf(
 				'<tr class="no-items"><td colspan="%d">%s</td></tr>',
 				count( $columns ),
-				esc_html__( 'No competitions have a prize cost yet. Add one in the product\'s Prize risk tab.', 'nera-prize-risk' )
+				esc_html( '' !== $empty_message ? $empty_message : __( 'No competitions have a prize cost yet. Add one in the product\'s Prize risk tab.', 'nera-prize-risk' ) )
 			);
 		}
 

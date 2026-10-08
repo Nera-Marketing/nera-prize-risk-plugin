@@ -141,7 +141,11 @@ class Nera_Prize_Risk_Admin {
 		}
 		$fee_pct      = self::fee_pct();
 		$settings_url = admin_url( 'admin.php?page=' . self::SETTINGS_SLUG );
-		$rows         = Nera_Prize_Risk_Data::get_rows();
+		$all_rows     = Nera_Prize_Risk_Data::get_rows();
+		$filters      = Nera_Prize_Risk_Export::current_filters();
+		$options      = Nera_Prize_Risk_Export::filter_options( $all_rows );
+		$rows         = Nera_Prize_Risk_Export::filter_rows( $all_rows, $filters );
+		$export_url   = Nera_Prize_Risk_Export::export_url( $filters );
 		include NERA_PRIZE_RISK_PLUGIN_DIR . 'templates/admin-report.php';
 	}
 

@@ -26,3 +26,16 @@
 	background-color: #dba617;
 	color: #1d2327;
 }
+.nera-prize-risk-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 12px;
+}
+.nera-prize-risk-filters select {
+	max-width: 100%;
+}
+.nera-prize-risk-filters .nera-prize-risk-export {
+	margin-left: auto;
+}
