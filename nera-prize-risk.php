@@ -159,6 +159,20 @@ add_action(
 );
 
 /**
+ * Admin: "Postal entry" tag on orders (edit-order box, auto-tag, orders list label).
+ */
+add_action(
+	'nera_prize_risk_loaded',
+	static function () {
+		if ( ! is_admin() ) {
+			return;
+		}
+		require_once NERA_PRIZE_RISK_PLUGIN_DIR . 'inc/class-nera-prize-risk-postal.php';
+		Nera_Prize_Risk_Postal::init();
+	}
+);
+
+/**
  * Report data and its cache invalidation (every request: orders change at checkout, by cron and over REST).
  */
 add_action(
