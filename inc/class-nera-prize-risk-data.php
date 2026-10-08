@@ -205,10 +205,13 @@ class Nera_Prize_Risk_Data {
 			$risk = 'exposed';
 		}
 
+		$category = self::primary_category( $id );
+
 		return array(
 			'id'             => $id,
 			'title'          => $product->get_name( 'edit' ),
-			'category'       => self::category_name( $id ),
+			'category'       => $category ? html_entity_decode( $category->name, ENT_QUOTES, 'UTF-8' ) : '',
+			'category_id'    => $category ? (int) $category->term_id : 0,
 			'status'         => (string) $product->get_lty_lottery_status(),
 			'end_date'       => (string) $product->get_lty_end_date(),
 			'total_cost'     => $total_cost,
@@ -229,20 +232,31 @@ class Nera_Prize_Risk_Data {
 	 * Primary category: Yoast's primary term when set and still assigned, else the first product_cat term.
 	 *
 	 * @param int $product_id Product id.
-	 * @return string Term name (raw, escape on output).
+	 * @return WP_Term|null
 	 */
-	public static function category_name( $product_id ) {
+	public static function primary_category( $product_id ) {
 		$terms = get_the_terms( $product_id, 'product_cat' );
 		if ( ! is_array( $terms ) || empty( $terms ) ) {
-			return '';
+			return null;
 		}
 		$primary = (int) get_post_meta( $product_id, '_yoast_wpseo_primary_product_cat', true );
 		foreach ( $terms as $term ) {
 			if ( $primary && (int) $term->term_id === $primary ) {
-				return html_entity_decode( $term->name, ENT_QUOTES, 'UTF-8' );
+				return $term;
 			}
 		}
-		return html_entity_decode( $terms[0]->name, ENT_QUOTES, 'UTF-8' );
+		return $terms[0];
+	}
+
+	/**
+	 * Primary category name.
+	 *
+	 * @param int $product_id Product id.
+	 * @return string Term name (raw, escape on output).
+	 */
+	public static function category_name( $product_id ) {
+		$term = self::primary_category( $product_id );
+		return $term ? html_entity_decode( $term->name, ENT_QUOTES, 'UTF-8' ) : '';
 	}
 
 	/**

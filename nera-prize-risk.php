@@ -170,7 +170,7 @@ add_action(
 );
 
 /**
- * Admin: Prize Risk menu (report screen with calculator and competitions table, settings).
+ * Admin: Prize Risk menu (report screen with calculator, filters and competitions table, settings) and the CSV export.
  */
 add_action(
 	'nera_prize_risk_loaded',
@@ -180,6 +180,8 @@ add_action(
 		}
 		require_once NERA_PRIZE_RISK_PLUGIN_DIR . 'inc/class-nera-prize-risk-admin.php';
 		require_once NERA_PRIZE_RISK_PLUGIN_DIR . 'inc/class-nera-prize-risk-table.php';
+		require_once NERA_PRIZE_RISK_PLUGIN_DIR . 'inc/class-nera-prize-risk-export.php';
 		Nera_Prize_Risk_Admin::init();
+		Nera_Prize_Risk_Export::init();
 	}
 );
