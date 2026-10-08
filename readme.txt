@@ -31,4 +31,9 @@ A ticket on an order line with a £0 total, in a processing or completed order, 
 == Changelog ==
 
 = 0.1.0 =
-* Plugin skeleton and shared PHP/JS calculation engine.
+* New - Plugin skeleton and shared PHP/JS calculation engine, matching the brief's worked example exactly.
+* New - Prize Risk tab on lottery products: prize cost and other costs fields, with a break-even line that updates while typing.
+* New - Prize Risk admin menu for administrators and shop managers, with a payment fee % setting and a what-if calculator box.
+* New - Competitions table with live sold, free and paid tickets, revenue, position and break-even from LTY and order data (HPOS), cached per product and cleared on order and product changes.
+* New - Status, category and month filters, and a CSV export of the filtered rows with formula-safe text cells.
+* New - Category and month rollups, and an Items view that groups competitions by title.
