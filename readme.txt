@@ -26,7 +26,7 @@ Admin only: the plugin loads nothing on the front end. It requires WooCommerce a
 
 = Free (postal) entries =
 
-A ticket counts as a free entry when its order (processing or completed) is tagged "Postal entry" or its order line has a £0 total. Staff tick the "Postal entry" box on the edit-order screen; orders created in wp-admin with a £0 total are ticked automatically on save (a manual untick is kept), and tagged orders show "Postal" in the orders list. Tagged orders add no revenue, even with a price. Free entries are excluded from paid tickets (paid tickets = purchased ticket count minus free entries) and bring no revenue. A 100% coupon also gives a £0 line, so tickets bought with one count as free entries too. The rule lives in one place in the data class.
+A ticket counts as a free entry when its order (processing or completed) is tagged "Postal entry" or its order line has a £0 total. Staff tick the "Postal entry" box on the edit-order screen; orders created in wp-admin are ticked automatically on save when they have at least one lottery line and every lottery line is £0 (other lines don't count; a manual untick is kept), and tagged orders show "Postal" in the orders list. Tagged orders add no revenue, even with a price. Free entries are excluded from paid tickets (paid tickets = purchased ticket count minus free entries) and bring no revenue. A 100% coupon also gives a £0 line, so tickets bought with one count as free entries too. The rule lives in the data class in two places, both through `is_postal_line()`: `count_free_entries()` (free tickets) and the postal-line skip in `get_figures()` (revenue).
 
 == Changelog ==
 
