@@ -129,6 +129,41 @@
 .nera-prize-risk-rollup tfoot td {
 	font-weight: 600;
 }
+/* Summary strip: card-style bordered tiles between the filters and the table. */
+.nera-prize-risk-summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 12px;
+}
+.nera-prize-risk-summary-tile {
+	box-sizing: border-box;
+	flex: 1 1 140px;
+	min-width: 0;
+	padding: 8px 12px;
+	border: 1px solid #c3c4c7;
+	background-color: #fff;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+.nera-prize-risk-summary-label {
+	display: block;
+	color: #646970;
+	font-size: 12px;
+}
+.nera-prize-risk-summary-value {
+	display: block;
+	color: #1d2327;
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.5;
+	font-variant-numeric: tabular-nums;
+}
+.nera-prize-risk-summary-tile.is-negative .nera-prize-risk-summary-value {
+	color: #d63638;
+}
+.nera-prize-risk-summary-tile.is-positive .nera-prize-risk-summary-value {
+	color: #008a20;
+}
 @media screen and (max-width: 782px) {
 	.nera-prize-risk-filters {
 		flex-direction: column;
@@ -145,6 +180,9 @@
 	}
 	.nera-prize-risk-filters .nera-prize-risk-export {
 		margin-left: 0;
+	}
+	.nera-prize-risk-summary-tile {
+		flex-basis: calc(50% - 4px);
 	}
 }
 /* Calculator modal. */

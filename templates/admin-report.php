@@ -64,6 +64,8 @@ $nera_prize_risk_filter_labels = array(
 	</form>
 
 	<?php
+	Nera_Prize_Risk_Table::render_summary( Nera_Prize_Risk_Data::rollup( $rows, 'category' )['total'], Nera_Prize_Risk_Data::live_exposure( $rows ) );
+
 	if ( 'items' === $view ) {
 		Nera_Prize_Risk_Table::render_rollup( Nera_Prize_Risk_Data::rollup( $rows, 'title' ), 'title', __( 'Item', 'nera-prize-risk' ) );
 	} else {
