@@ -1,6 +1,6 @@
 <?php
 /**
- * Prize Risk screen: competitions table under the title; the calculator opens in a modal from the title button.
+ * Prize Risk screen: competitions table under the title; the calculator opens in a modal from the filter-bar button.
  *
  * Variables from Nera_Prize_Risk_Admin::render_report(): $fee_pct (float), $settings_url (string), $all_rows (array[]),
  * $rows (array[], filtered), $filters (array), $options (array), $export_url (string), $view (list|items),
@@ -18,8 +18,7 @@ $nera_prize_risk_filter_labels = array(
 );
 ?>
 <div class="wrap nera-prize-risk">
-	<h1 class="wp-heading-inline"><?php esc_html_e( 'Prize Risk', 'nera-prize-risk' ); ?></h1>
-	<a href="#" class="page-title-action" id="nera-prize-risk-calc-open" role="button" aria-haspopup="dialog" aria-controls="nera-prize-risk-calc-dialog"><?php esc_html_e( 'Calculator', 'nera-prize-risk' ); ?></a>
+	<h1><?php esc_html_e( 'Prize Risk', 'nera-prize-risk' ); ?></h1>
 	<hr class="wp-header-end">
 
 	<dialog id="nera-prize-risk-calc-dialog" class="nera-prize-risk-dialog" aria-labelledby="nera-prize-risk-calc-title">
@@ -60,6 +59,7 @@ $nera_prize_risk_filter_labels = array(
 		<?php if ( array_filter( $filters ) ) : ?>
 			<a class="button-link" href="<?php echo esc_url( admin_url( 'admin.php?page=' . Nera_Prize_Risk_Admin::PAGE_SLUG . ( 'items' === $view ? '&view=items' : '' ) ) ); ?>"><?php esc_html_e( 'Clear filters', 'nera-prize-risk' ); ?></a>
 		<?php endif; ?>
+		<button type="button" class="button nera-prize-risk-calc-open" id="nera-prize-risk-calc-open" aria-haspopup="dialog" aria-controls="nera-prize-risk-calc-dialog"><?php esc_html_e( 'Calculator', 'nera-prize-risk' ); ?></button>
 		<a class="button nera-prize-risk-export" id="nera-prize-risk-export" href="<?php echo esc_url( $export_url ); ?>"><?php esc_html_e( 'Export CSV', 'nera-prize-risk' ); ?></a>
 	</form>
 
