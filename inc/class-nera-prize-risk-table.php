@@ -118,6 +118,27 @@ class Nera_Prize_Risk_Table {
 	 * @param string  $empty_message Message when there are no rows (default: nothing costed yet).
 	 * @return void
 	 */
+	/**
+	 * Calculator values for a row's "Model this" action: costs kept separate, sell-through as a percent to 1 dp.
+	 *
+	 * @param array $row Row from Nera_Prize_Risk_Data::build_row().
+	 * @return array
+	 */
+	public static function model_values( $row ) {
+		// Whole numbers as ints so the inputs show "600", not "600.0".
+		$n = static function ( $v ) {
+			$v = (float) $v;
+			return floor( $v ) === $v ? (int) $v : $v;
+		};
+		return array(
+			'prize_cost'    => $n( $row['prize_cost'] ),
+			'other_costs'   => $n( $row['other_costs'] ),
+			'ticket_price'  => $n( $row['ticket_price'] ),
+			'total_tickets' => (int) $row['max'],
+			'sell_through'  => null === $row['sell_through'] ? null : $n( round( $row['sell_through'] * 100, 1 ) ),
+		);
+	}
+
 	public static function render( $rows, $empty_message = '' ) {
 		$columns = self::columns();
 		echo '<div class="nera-prize-risk-table-wrap"><table class="widefat striped nera-prize-risk-table" id="nera-prize-risk-table"><thead><tr>';
@@ -138,9 +159,11 @@ class Nera_Prize_Risk_Table {
 			$sub = '<br><span class="description nera-prize-risk-sub">%s</span>';
 			printf( '<tr data-product-id="%d">', (int) $row['id'] );
 			printf(
-				'<td class="column-competition"><a href="%s">%s</a></td>',
+				'<td class="column-competition"><a href="%s">%s</a><div class="row-actions visible"><button type="button" class="button-link nera-prize-risk-model" data-calc="%s">%s</button></div></td>',
 				esc_url( admin_url( 'post.php?post=' . (int) $row['id'] . '&action=edit' ) ),
-				esc_html( $row['title'] )
+				esc_html( $row['title'] ),
+				esc_attr( wp_json_encode( self::model_values( $row ) ) ),
+				esc_html__( 'Model this', 'nera-prize-risk' )
 			);
 			printf( '<td class="column-category">%s</td>', esc_html( $row['category'] ) );
 			printf(

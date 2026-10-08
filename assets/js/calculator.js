@@ -133,11 +133,31 @@
 			}
 		});
 		dialog.addEventListener('close', function () {
-			if (trigger) {
-				trigger.focus();
+			var back = opener || trigger;
+			opener = null;
+			if (back) {
+				back.focus();
 			}
 		});
 	}
+
+	// "Model this" row action: open the modal prefilled with the row's values (nothing is saved).
+	var opener = null;
+	document.addEventListener('click', function (e) {
+		var btn = e.target.closest ? e.target.closest('.nera-prize-risk-model') : null;
+		if (!btn) {
+			return;
+		}
+		e.preventDefault();
+		var values;
+		try {
+			values = JSON.parse(btn.getAttribute('data-calc') || '{}');
+		} catch (err) {
+			return;
+		}
+		opener = btn;
+		open(values);
+	});
 
 	window.NeraPrizeRiskCalculator = { open: open, update: update };
 })();
