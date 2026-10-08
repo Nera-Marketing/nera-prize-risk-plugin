@@ -81,24 +81,14 @@
 	color: #646970;
 	font-size: 12px;
 }
-/* Competition / group label stays in view while the table scrolls sideways. */
+/* Competition / group label wraps within a fixed width range so the table fits at 1440. */
 .nera-prize-risk-table .column-competition,
 .nera-prize-risk-rollup .column-label {
-	position: sticky;
-	left: 0;
-	z-index: 1;
 	min-width: 120px;
 	max-width: 200px;
 	white-space: normal;
-	background-color: #fff;
-	box-shadow: inset -1px 0 0 #dcdcde;
-}
-.nera-prize-risk-table.striped > tbody > :nth-child(odd) > .column-competition,
-.nera-prize-risk-rollup.striped > tbody > :nth-child(odd) > .column-label {
-	background-color: #f6f7f7;
 }
 .nera-prize-risk-table tr.no-items td {
-	position: static;
 	white-space: normal;
 }
 .nera-prize-risk-pill {
