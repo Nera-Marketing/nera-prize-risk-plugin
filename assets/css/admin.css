@@ -147,7 +147,7 @@
 .nera-prize-risk-filters select {
 	max-width: 100%;
 }
-.nera-prize-risk-filters .nera-prize-risk-export {
+.nera-prize-risk-filters .nera-prize-risk-calc-open {
 	margin-left: auto;
 }
 .nera-prize-risk-view {
@@ -211,7 +211,7 @@
 	.nera-prize-risk-filters .button {
 		text-align: center;
 	}
-	.nera-prize-risk-filters .nera-prize-risk-export {
+	.nera-prize-risk-filters .nera-prize-risk-calc-open {
 		margin-left: 0;
 	}
 	.nera-prize-risk-summary-tile {

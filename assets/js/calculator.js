@@ -90,7 +90,7 @@
 	box.addEventListener('input', update);
 	update();
 
-	// Modal: open from the title button; close with the Close button, Esc (native) or a backdrop click.
+	// Modal: open from the filter-bar button; close with the Close button, Esc (native) or a backdrop click.
 	var dialog = document.getElementById('nera-prize-risk-calc-dialog');
 	var trigger = document.getElementById('nera-prize-risk-calc-open');
 
