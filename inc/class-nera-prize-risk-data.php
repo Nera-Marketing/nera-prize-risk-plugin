@@ -279,6 +279,22 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
+	 * Live exposure: sum of |position| over Live rows that are exposed (position < 0).
+	 *
+	 * @param array[] $rows Report rows (filtered).
+	 * @return float
+	 */
+	public static function live_exposure( $rows ) {
+		$sum = 0.0;
+		foreach ( $rows as $row ) {
+			if ( 'lty_lottery_started' === $row['status'] && null !== $row['position'] && (float) $row['position'] < 0 ) {
+				$sum += abs( (float) $row['position'] );
+			}
+		}
+		return $sum;
+	}
+
+	/**
 	 * Empty rollup group.
 	 *
 	 * @param string $id    Group key.

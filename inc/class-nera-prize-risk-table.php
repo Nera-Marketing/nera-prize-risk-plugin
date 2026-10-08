@@ -311,6 +311,36 @@ class Nera_Prize_Risk_Table {
 	}
 
 	/**
+	 * Summary strip above the table: comps, total cost, revenue, margin, live exposure.
+	 *
+	 * @param array $total    Rollup total from Nera_Prize_Risk_Data::rollup().
+	 * @param float $exposure From Nera_Prize_Risk_Data::live_exposure().
+	 * @return void
+	 */
+	public static function render_summary( $total, $exposure ) {
+		$margin = round( (float) $total['margin'], 2 );
+		$tiles  = array(
+			'comps'    => array( __( 'Comps', 'nera-prize-risk' ), (string) $total['comps'], number_format_i18n( $total['comps'] ), '' ),
+			'cost'     => array( __( 'Total cost', 'nera-prize-risk' ), self::raw( $total['prize_cost'] ), self::money( $total['prize_cost'], 0 ), '' ),
+			'revenue'  => array( __( 'Revenue (net)', 'nera-prize-risk' ), self::raw( $total['revenue'] ), self::money( $total['revenue'], 0 ), '' ),
+			'margin'   => array( __( 'Margin', 'nera-prize-risk' ), self::raw( $total['margin'] ), self::money( $total['margin'], 0 ), $margin < 0 ? 'is-negative' : ( $margin > 0 ? 'is-positive' : '' ) ),
+			'exposure' => array( __( 'Live exposure', 'nera-prize-risk' ), self::raw( $exposure ), self::money( $exposure, 0 ), '' ),
+		);
+		echo '<div class="nera-prize-risk-summary" id="nera-prize-risk-summary">';
+		foreach ( $tiles as $key => $tile ) {
+			printf(
+				'<div class="nera-prize-risk-summary-tile %s" data-key="%s" data-value="%s"><span class="nera-prize-risk-summary-label">%s</span><span class="nera-prize-risk-summary-value">%s</span></div>',
+				esc_attr( $tile[3] ),
+				esc_attr( $key ),
+				esc_attr( $tile[1] ),
+				esc_html( $tile[0] ),
+				esc_html( $tile[2] )
+			);
+		}
+		echo '</div>';
+	}
+
+	/**
 	 * Figure cells of one rollup row.
 	 *
 	 * @param array $group Rollup group.
