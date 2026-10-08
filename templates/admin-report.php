@@ -1,8 +1,8 @@
 <?php
 /**
- * Prize Risk screen: calculator box on top; the report table (F-004) goes below it.
+ * Prize Risk screen: calculator box on top, competitions table below it.
  *
- * Variables from Nera_Prize_Risk_Admin::render_report(): $fee_pct (float), $settings_url (string).
+ * Variables from Nera_Prize_Risk_Admin::render_report(): $fee_pct (float), $settings_url (string), $rows (array[]).
  *
  * @package nera-prize-risk
  */
@@ -58,4 +58,7 @@ $nera_prize_risk_outputs = array(
 			</tbody>
 		</table>
 	</div>
+
+	<h2 class="nera-prize-risk-table-title"><?php esc_html_e( 'Competitions', 'nera-prize-risk' ); ?></h2>
+	<?php Nera_Prize_Risk_Table::render( $rows ); ?>
 </div>
