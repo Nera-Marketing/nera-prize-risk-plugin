@@ -178,7 +178,8 @@ class Nera_Prize_Risk_Product {
 			$normalised = str_replace( $thousands, '', $raw );
 		}
 		$normalised = str_replace( $decimal, '.', $normalised );
-		if ( ! is_numeric( $normalised ) || (float) $normalised < 0 ) {
+		// Plain decimals only: no sign, exponent (1e3) or hex, which is_numeric() would accept.
+		if ( ! preg_match( '/^\d+(\.\d+)?$/', $normalised ) ) {
 			return array( '', false );
 		}
 		return array( wc_format_decimal( $normalised ), true );
@@ -254,6 +255,7 @@ class Nera_Prize_Risk_Product {
 					'warning' => __( 'Can\'t break even: needs %1$s tickets, only %2$s exist. Sold out loss: %3$s.', 'nera-prize-risk' ),
 					/* translators: %s: sold out loss with currency */
 					'noNet'   => __( 'Can\'t break even: the payment fee takes the whole ticket price. Sold out loss: %s.', 'nera-prize-risk' ),
+					'invalid' => __( 'Prize cost or Other costs is not a valid number.', 'nera-prize-risk' ),
 				),
 			)
 		);
