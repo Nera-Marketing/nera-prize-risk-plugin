@@ -27,7 +27,7 @@ class Nera_Prize_Risk_Data {
 	const OPTION_FEE_PCT = 'nera_prize_risk_fee_pct';
 
 	/**
-	 * Order statuses whose lines count (task.md §5).
+	 * Order statuses whose lines count.
 	 *
 	 * @var string[]
 	 */
@@ -335,7 +335,7 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
-	 * Group rows into a rollup (task.md §4b/§4c): Comps, Prize cost, Revenue (net), Avg sell-through, Margin, Margin %.
+	 * Group rows into a rollup: Comps, Prize cost, Revenue (net), Avg sell-through, Margin, Margin %.
 	 *
 	 * Avg sell-through is the mean of each row's sell-through (rows without a ticket total are left out of the mean).
 	 * Margin is the sum of the rows' positions; Margin % = margin / revenue, null when revenue is 0.
