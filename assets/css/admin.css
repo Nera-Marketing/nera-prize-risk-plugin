@@ -1,0 +1,314 @@
+/* Prize Risk report screen (wp-admin only). */
+.nera-prize-risk-table-wrap {
+	max-width: 100%;
+	overflow-x: auto;
+}
+.nera-prize-risk-table th,
+.nera-prize-risk-table td {
+	padding: 8px 6px;
+	white-space: nowrap;
+	vertical-align: top;
+}
+.nera-prize-risk-table th:first-child,
+.nera-prize-risk-table td:first-child {
+	padding-left: 10px;
+}
+.nera-prize-risk-table th:last-child,
+.nera-prize-risk-table td:last-child {
+	padding-right: 10px;
+}
+/* Numbers: right-aligned, tabular figures. */
+.nera-prize-risk-table .column-prize_cost,
+.nera-prize-risk-table .column-ticket_price,
+.nera-prize-risk-table .column-sold,
+.nera-prize-risk-table .column-free,
+.nera-prize-risk-table .column-revenue,
+.nera-prize-risk-table .column-break_even,
+.nera-prize-risk-table .column-position,
+.nera-prize-risk-rollup thead th:not(.column-label),
+.nera-prize-risk-rollup td:not(.column-label) {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+/* Sortable headers (assets/js/sort.js): WP sorting indicators on a button instead of a link. */
+.nera-prize-risk-table thead th.sortable,
+.nera-prize-risk-table thead th.sorted {
+	padding: 0;
+}
+.nera-prize-risk-sort {
+	display: flex;
+	align-items: flex-start;
+	width: 100%;
+	margin: 0;
+	padding: 8px 6px;
+	border: 0;
+	border-radius: 2px;
+	background: none;
+	color: #2271b1;
+	font: inherit;
+	text-align: inherit;
+	white-space: normal; /* labels may wrap so the indicators don't push the table past its wrapper */
+	cursor: pointer;
+}
+.nera-prize-risk-sort:hover {
+	color: #135e96;
+}
+.nera-prize-risk-sort:focus {
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
+	outline: 2px solid transparent;
+}
+.nera-prize-risk-table thead th:first-child .nera-prize-risk-sort {
+	padding-left: 10px;
+}
+.nera-prize-risk-table thead th:last-child .nera-prize-risk-sort {
+	padding-right: 10px;
+}
+.nera-prize-risk-table thead .column-prize_cost .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-ticket_price .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-sold .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-free .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-revenue .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-break_even .nera-prize-risk-sort,
+.nera-prize-risk-table thead .column-position .nera-prize-risk-sort,
+.nera-prize-risk-rollup thead th:not(.column-label) .nera-prize-risk-sort {
+	justify-content: flex-end;
+}
+/* Break-even above total tickets (table cell, calculator output). */
+.nera-prize-risk-warning {
+	color: #d63638;
+}
+.nera-prize-risk-table .nera-prize-risk-sub {
+	color: #646970;
+	font-size: 12px;
+}
+/* Competition / group label wraps within a fixed width range so the table fits at 1440. */
+.nera-prize-risk-table .column-competition,
+.nera-prize-risk-rollup .column-label {
+	min-width: 120px;
+	max-width: 200px;
+	white-space: normal;
+}
+.nera-prize-risk-table tr.no-items td {
+	white-space: normal;
+}
+.nera-prize-risk-pill {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-weight: 600;
+	line-height: 1.6;
+}
+.nera-prize-risk-pill.is-exposed {
+	background-color: #d63638;
+	color: #fff;
+}
+.nera-prize-risk-pill.is-covered {
+	background-color: #00a32a;
+	color: #fff;
+}
+.nera-prize-risk-pill.is-sold-out {
+	background-color: #dba617;
+	color: #1d2327;
+}
+/* Status: small neutral badge, quieter than the Risk pill. */
+.nera-prize-risk-status {
+	display: inline-block;
+	padding: 0 6px;
+	border: 1px solid #dcdcde;
+	border-radius: 2px;
+	background-color: #f6f7f7;
+	color: #50575e;
+	font-size: 12px;
+	line-height: 1.7;
+}
+.nera-prize-risk-status.is-live {
+	border-color: #c5d9ed;
+	background-color: #f0f6fc;
+	color: #0a4b78;
+}
+.nera-prize-risk-status.is-scheduled {
+	border-color: #dcdcde;
+	background-color: #fff;
+	color: #2c3338;
+}
+.nera-prize-risk-status.is-ended,
+.nera-prize-risk-status.is-drawn,
+.nera-prize-risk-status.is-failed {
+	background-color: #f0f0f1;
+	color: #50575e;
+}
+.nera-prize-risk-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 12px;
+}
+.nera-prize-risk-filters select {
+	max-width: 100%;
+}
+.nera-prize-risk-filters .nera-prize-risk-calc-open {
+	margin-left: auto;
+}
+.nera-prize-risk-view {
+	float: none;
+	margin: 0 0 8px;
+}
+.nera-prize-risk-table-title,
+.nera-prize-risk-rollup-title {
+	margin: 24px 0 8px;
+}
+.nera-prize-risk-rollup tfoot th,
+.nera-prize-risk-rollup tfoot td {
+	font-weight: 600;
+}
+/* Summary strip: card-style bordered tiles between the filters and the table. */
+.nera-prize-risk-summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 12px;
+}
+.nera-prize-risk-summary-tile {
+	box-sizing: border-box;
+	flex: 1 1 140px;
+	min-width: 0;
+	padding: 8px 12px;
+	border: 1px solid #c3c4c7;
+	background-color: #fff;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+.nera-prize-risk-summary-label {
+	display: block;
+	color: #646970;
+	font-size: 12px;
+}
+.nera-prize-risk-summary-value {
+	display: block;
+	color: #1d2327;
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.5;
+	font-variant-numeric: tabular-nums;
+}
+.nera-prize-risk-summary-tile.is-negative .nera-prize-risk-summary-value {
+	color: #d63638;
+}
+.nera-prize-risk-summary-tile.is-positive .nera-prize-risk-summary-value {
+	color: #008a20;
+}
+@media screen and (max-width: 782px) {
+	.nera-prize-risk-filters {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.nera-prize-risk-filters select,
+	.nera-prize-risk-filters .button {
+		width: 100%;
+		max-width: none;
+		margin: 0;
+	}
+	.nera-prize-risk-filters .button {
+		text-align: center;
+	}
+	.nera-prize-risk-filters .nera-prize-risk-calc-open {
+		margin-left: 0;
+	}
+	.nera-prize-risk-summary-tile {
+		flex-basis: calc(50% - 4px);
+	}
+}
+/* Calculator modal. */
+.nera-prize-risk-dialog {
+	box-sizing: border-box;
+	width: calc(100% - 32px);
+	max-width: 560px;
+	max-height: calc(100% - 32px);
+	padding: 0;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+	color: #1d2327;
+	box-shadow: 0 3px 30px rgba(0, 0, 0, 0.2);
+}
+.nera-prize-risk-dialog::backdrop {
+	background: rgba(0, 0, 0, 0.6);
+}
+.nera-prize-risk-dialog-header {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 16px;
+	border-bottom: 1px solid #dcdcde;
+	background: #fff;
+}
+.nera-prize-risk-dialog-header h2 {
+	margin: 0;
+	font-size: 1.3em;
+}
+.nera-prize-risk-dialog-close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	color: #50575e;
+}
+.nera-prize-risk-dialog-close:hover,
+.nera-prize-risk-dialog-close:focus {
+	color: #135e96;
+}
+.nera-prize-risk-dialog-close .dashicons {
+	width: 24px;
+	height: 24px;
+	font-size: 24px;
+}
+.nera-prize-risk-dialog-body {
+	padding: 16px;
+}
+.nera-prize-risk-dialog-body .description {
+	margin-top: 0;
+}
+.nera-prize-risk-calc-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 12px 16px;
+}
+.nera-prize-risk-calc-field {
+	margin: 0;
+}
+.nera-prize-risk-calc-field label {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+.nera-prize-risk-calc-field input {
+	box-sizing: border-box;
+	width: 100%;
+}
+.nera-prize-risk-calc-fee {
+	margin: 16px 0 12px;
+}
+/* "Model this" row action: always shown, 24px tap target. */
+.nera-prize-risk-table .row-actions {
+	padding-top: 0;
+}
+.nera-prize-risk-table .nera-prize-risk-model {
+	min-height: 24px;
+}
+/* Orders list: "Postal" mark for orders tagged as postal entries (WP-native badge). */
+.nera-prize-risk-postal-mark {
+	display: inline-block;
+	padding: 0 8px;
+	border-radius: 4px;
+	background: #f0f6fc;
+	color: #0a4b78;
+	border: 1px solid #c5d9ed;
+	font-size: 12px;
+	line-height: 2;
+	white-space: nowrap;
+}
