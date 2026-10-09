@@ -22,7 +22,6 @@
 # The repo is private: each site needs NERA_PRIZE_RISK_GITHUB_TOKEN in wp-config.php.
 #
 # Requirements: git, gh (logged in to github.com with access to the repo).
-# Parity: Nera-Marketing/nera-spin-to-win-plugin release.sh (same zip and tag layout).
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
