@@ -1,6 +1,6 @@
 <?php
 /**
- * "Postal entry" tag on orders (D-1, CHG-6): edit-order checkbox, auto-tag for admin-created orders whose lottery lines are all £0,
+ * "Postal entry" tag on orders: edit-order checkbox, auto-tag for admin-created orders whose lottery lines are all £0,
  * and a "Postal" label in the orders list. HPOS and CPT storage.
  *
  * @package Nera_Prize_Risk

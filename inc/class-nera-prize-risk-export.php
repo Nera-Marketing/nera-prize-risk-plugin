@@ -24,7 +24,7 @@ class Nera_Prize_Risk_Export {
 	}
 
 	/**
-	 * Status filter keys → LTY statuses (D-2).
+	 * Status filter keys → LTY statuses.
 	 *
 	 * @return array<string,string>
 	 */
