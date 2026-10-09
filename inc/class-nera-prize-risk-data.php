@@ -198,7 +198,7 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
-	 * Status label for an LTY status (D-2).
+	 * Status label for an LTY status.
 	 *
 	 * @param string $status LTY `_lty_lottery_status` value.
 	 * @return string
@@ -520,7 +520,7 @@ class Nera_Prize_Risk_Data {
 		$gross   = 0.0;
 		$item_id = array();
 		foreach ( $lines as $line ) {
-			// D-1: lines on orders tagged as postal entries bring no revenue (nor refunds), even with a price.
+			// Lines on orders tagged as postal entries bring no revenue (nor refunds), even with a price.
 			if ( self::is_postal_line( $line ) ) {
 				continue;
 			}
@@ -550,7 +550,7 @@ class Nera_Prize_Risk_Data {
 	}
 
 	/**
-	 * Free (postal) entries, D-1 (updated by CHG-6): tickets on lines in processing/completed orders
+	 * Free (postal) entries: tickets on lines in processing/completed orders
 	 * that are tagged "Postal entry" OR have a £0 line total (the second layer; a 100% coupon also
 	 * gives a £0 line and counts here). Change the rule only here and in get_figures()' revenue skip.
 	 *
