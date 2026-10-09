@@ -1,5 +1,5 @@
 // CLI test for the JS calculation engine: node tests/calc-test.mjs
-// Asserts the brief's worked example (task.md §5), same values as calc-test.php. Exits 1 on any failure.
+// Asserts a worked example, same values as calc-test.php. Exits 1 on any failure.
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)

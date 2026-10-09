@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 class Nera_Prize_Risk_Table {
 
 	/**
-	 * Column keys and headings, in brief order (task.md §4a).
+	 * Column keys and headings, in display order.
 	 *
 	 * @return array<string,string>
 	 */
@@ -277,7 +277,7 @@ class Nera_Prize_Risk_Table {
 	}
 
 	/**
-	 * Rollup columns (task.md §4b), after the group label column.
+	 * Rollup columns, after the group label column.
 	 *
 	 * @return array<string,string>
 	 */

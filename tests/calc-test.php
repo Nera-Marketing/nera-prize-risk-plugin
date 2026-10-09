@@ -1,7 +1,7 @@
 <?php
 /**
  * CLI test for the calculation engine: php tests/calc-test.php
- * Asserts the brief's worked example (task.md §5). Exits 1 on any failure.
+ * Asserts a worked example. Exits 1 on any failure.
  */
 
 define( 'ABSPATH', __DIR__ . '/' );

@@ -19,7 +19,6 @@
 #   3. Pushes tag vVERSION and creates the GitHub release with the zip attached (gh)
 #
 # Sites pick the release up through Plugin Update Checker (see nera-prize-risk.php).
-# The repo is private: each site needs NERA_PRIZE_RISK_GITHUB_TOKEN in wp-config.php.
 #
 # Requirements: git, gh (logged in to github.com with access to the repo).
 # ─────────────────────────────────────────────────────────────────────────────

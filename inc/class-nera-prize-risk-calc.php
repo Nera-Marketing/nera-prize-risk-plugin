@@ -14,7 +14,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Prize risk formulas (task.md §5).
+ * Prize risk formulas.
  */
 final class Nera_Prize_Risk_Calc {
 

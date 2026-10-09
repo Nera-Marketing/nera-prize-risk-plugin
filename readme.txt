@@ -31,7 +31,7 @@ A ticket counts as a free entry when its order (processing or completed) is tagg
 == Changelog ==
 
 = 0.1.0 =
-* New - Plugin skeleton and shared PHP/JS calculation engine, matching the brief's worked example exactly.
+* New - Plugin skeleton and shared PHP/JS calculation engine, matching a worked example exactly.
 * New - Prize Risk tab on lottery products: prize cost and other costs fields, with a break-even line that updates while typing.
 * New - Prize Risk admin menu for administrators and shop managers, with a payment fee % setting and a what-if calculator box.
 * New - Competitions table with live sold, free and paid tickets, revenue, position and break-even from LTY and order data (HPOS), cached per product and cleared on order and product changes.
